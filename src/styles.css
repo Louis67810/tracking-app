@@ -166,13 +166,10 @@ a {
   align-items: center;
   gap: 2px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1;
   letter-spacing: 0;
-  background: linear-gradient(67.7deg, #007cef 4.99%, #8dc4e1 95.01%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #aecfe0;
 }
 
 .score-value img {
@@ -333,7 +330,7 @@ h1 {
   color: #a3a3aa;
   text-decoration: none;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.35;
   letter-spacing: 0;
   transition: color 140ms ease-out;
