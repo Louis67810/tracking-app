@@ -406,6 +406,489 @@ h1 {
   font-weight: 700;
 }
 
+.calendar-page {
+  overflow: hidden;
+}
+
+.calendar-page::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 382px;
+  left: 281px;
+  top: -222px;
+  background: rgba(255, 255, 255, 0.15);
+  filter: blur(59.55px);
+  transform: rotate(49deg);
+  pointer-events: none;
+}
+
+.calendar-content {
+  position: absolute;
+  inset: 0;
+  transition: filter 260ms ease, transform 260ms ease, opacity 260ms ease;
+}
+
+.calendar-content.is-blurred {
+  filter: blur(10px);
+  opacity: 0.52;
+  transform: scale(0.985);
+}
+
+.calendar-topbar {
+  position: absolute;
+  z-index: 3;
+  top: 88px;
+  left: 32px;
+  width: calc(100% - 62px);
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calendar-back,
+.calendar-add,
+.day-switcher button,
+.composer-close,
+.task-grip {
+  border: 0;
+  appearance: none;
+}
+
+.calendar-back {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.4);
+  background: #191a1f;
+  border-radius: 999px;
+}
+
+.day-switcher {
+  width: 184px;
+  height: 46px;
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #15161c;
+}
+
+.day-switcher button {
+  width: 34px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: transparent;
+  padding: 0;
+}
+
+.day-pill {
+  height: 46px;
+  min-width: 104px;
+  display: grid;
+  place-items: center;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  background:
+    radial-gradient(93.18% 176.09% at 6.82% -76.09%, rgba(255, 255, 255, 0.042) 0%, rgba(255, 255, 255, 0) 100%),
+    #23242b;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.calendar-add {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  color: #000000;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow:
+    -14px 14px 6px rgba(0, 0, 0, 0.02),
+    -9px 9px 5px rgba(0, 0, 0, 0.15),
+    -5px 5px 4px rgba(0, 0, 0, 0.5),
+    -2px 2px 3px rgba(0, 0, 0, 0.85),
+    -1px 1px 2px rgba(0, 0, 0, 0.98),
+    inset 1px -2px 1.3px rgba(0, 0, 0, 0.25);
+}
+
+.calendar-divider {
+  top: 165px;
+  left: 38px;
+  right: 26px;
+}
+
+.calendar-board {
+  position: absolute;
+  top: 200px;
+  left: 32px;
+  width: calc(100% - 64px);
+  height: 640px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(35, 36, 43, 0.32);
+}
+
+.calendar-board::after {
+  content: "";
+  position: absolute;
+  z-index: 8;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 75px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(20, 20, 27, 0) 0%, #14141b 60.7%);
+}
+
+.calendar-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  padding-bottom: 76px;
+}
+
+.calendar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.calendar-scroll::-webkit-scrollbar-thumb {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.time-rail {
+  position: absolute;
+  z-index: 2;
+  top: 25px;
+  left: 18px;
+  width: 26px;
+  display: grid;
+  gap: 0;
+}
+
+.time-rail span {
+  height: 52px;
+  color: #717171;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.time-rail::after {
+  content: "";
+  position: absolute;
+  top: -24px;
+  right: -13px;
+  width: 1px;
+  height: 100%;
+  min-height: 830px;
+  opacity: 0.08;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.8) 0 11px,
+    transparent 11px 15px,
+    rgba(255, 255, 255, 0.45) 15px 18px,
+    transparent 18px 26px
+  );
+}
+
+.calendar-grid {
+  position: relative;
+  margin-left: 57px;
+  width: calc(100% - 57px);
+  min-height: 832px;
+}
+
+.hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.calendar-task,
+.free-block {
+  position: absolute;
+  left: 21px;
+  width: 268px;
+  border-radius: 13px;
+}
+
+.calendar-task {
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 23px;
+  min-height: 92px;
+  color: #ffffff;
+  background: #212228;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 2px #0c0c11;
+  touch-action: none;
+}
+
+.task-copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px 16px 12px 18px;
+  text-align: center;
+}
+
+.task-copy strong,
+.free-block span {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.task-copy span {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.task-light {
+  position: absolute;
+  z-index: 1;
+  left: 14px;
+  right: 31px;
+  bottom: -39px;
+  height: 50px;
+  border-radius: 200px;
+  background: rgba(var(--task-glow), 0.4);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.task-grip {
+  position: relative;
+  z-index: 3;
+  width: 23px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 2px);
+  align-content: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: grab;
+}
+
+.task-grip:active {
+  cursor: grabbing;
+}
+
+.task-grip i {
+  width: 2px;
+  height: 2px;
+  border-radius: 0.5px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.free-block {
+  min-height: 84px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: #212228;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 2px #0c0c11;
+}
+
+.free-block::before {
+  content: "";
+  position: absolute;
+  inset: -100px -80px;
+  opacity: 0.04;
+  background: repeating-linear-gradient(135deg, #ffffff 0 1px, transparent 1px 9px);
+}
+
+.free-block span {
+  position: relative;
+  z-index: 1;
+}
+
+.task-composer-layer {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 14px 18px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(6px);
+}
+
+.task-composer {
+  position: relative;
+  isolation: isolate;
+  width: min(411px, calc(100vw - 28px));
+  min-height: 448px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+  overflow: hidden;
+  border-radius: 23px;
+  background:
+    linear-gradient(180deg, rgba(64, 64, 64, 0.05) 0%, rgba(11, 11, 11, 0.05) 100%),
+    linear-gradient(180deg, rgba(50, 50, 50, 0.1) 0%, rgba(34, 34, 34, 0.1) 100%),
+    radial-gradient(64.55% 103.26% at 95.3% -3.26%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 78.88%),
+    #131418;
+  box-shadow:
+    inset 0 0.5px 1px rgba(255, 255, 255, 0.15),
+    inset 0 -1px 1.2px 0.35px #121212;
+}
+
+.task-composer::before,
+.task-composer::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 999px;
+  transform: rotate(-45deg);
+  pointer-events: none;
+}
+
+.task-composer::before {
+  width: 245px;
+  height: 603px;
+  left: -177px;
+  top: -151px;
+  background: radial-gradient(68.54% 68.72% at 55.02% 31.46%, rgba(217, 217, 217, 0.08) 0%, rgba(140, 140, 140, 0.02) 50%, rgba(115, 115, 115, 0) 80%);
+}
+
+.task-composer::after {
+  width: 105px;
+  height: 603px;
+  left: -210px;
+  top: -291px;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(217, 217, 217, 0.06) 0%, rgba(115, 115, 115, 0.02) 80%, rgba(0, 0, 0, 0) 100%);
+}
+
+.composer-close {
+  align-self: flex-end;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  padding: 0;
+  border-radius: 40px;
+  background:
+    linear-gradient(180deg, rgba(34, 34, 34, 0.7) 0%, rgba(50, 50, 50, 0.7) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.04) 100%),
+    #131618;
+  box-shadow:
+    0 40px 24px rgba(0, 0, 0, 0.03),
+    0 23px 14px rgba(0, 0, 0, 0.04),
+    0 10px 10px rgba(0, 0, 0, 0.06),
+    0 3px 6px rgba(0, 0, 0, 0.1),
+    inset 0 0.5px 1px rgba(255, 255, 255, 0.15),
+    inset 0 -1px 1.2px 0.35px #121212;
+}
+
+.composer-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.composer-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.composer-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.composer-field span {
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.composer-field input,
+.composer-field select {
+  min-width: 0;
+  width: 100%;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 13px;
+  outline: none;
+  padding: 0 12px;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.composer-field select:disabled {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  padding: 0;
+}
+
+.color-swatch.is-selected {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+.create-task-button {
+  width: 100%;
+  height: 48px;
+  margin-top: auto;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  border-radius: 27px;
+  color: #000000;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 @media (max-width: 439px) {
   body {
     display: block;

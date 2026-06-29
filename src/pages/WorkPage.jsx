@@ -1,10 +1,17 @@
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 import ScoreRing from "../ui/ScoreRing.jsx";
 
 const mainScore = 90;
-const workLinks = ["Calendrier", "Tes tâches", "Tes objectifs"];
+const workLinks = [
+  { label: "Calendrier", to: "/travail/calendrier" },
+  { label: "Tes tâches" },
+  { label: "Tes objectifs" }
+];
 
 export default function WorkPage() {
+  const navigate = useNavigate();
+
   return (
     <section className="work-page page-surface">
       <div className="hero-art" aria-hidden="true">
@@ -23,8 +30,8 @@ export default function WorkPage() {
       <div className="divider divider-title" />
 
       <div className="work-cards" aria-label="Sections travail">
-        {workLinks.map((label) => (
-          <button className="work-card" type="button" key={label}>
+        {workLinks.map(({ label, to }) => (
+          <button className="work-card" type="button" key={label} onClick={() => to && navigate(to)}>
             <span className="card-label">
               {label}
               <span className="arrow-disc" aria-hidden="true">

@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom";
 import AppShell from "./ui/AppShell.jsx";
 import WorkPage from "./pages/WorkPage.jsx";
+import WorkCalendarPage from "./pages/WorkCalendarPage.jsx";
 import EmptyPage from "./pages/EmptyPage.jsx";
 import ScanPage from "./pages/ScanPage.jsx";
 import { registerServiceWorker } from "./pwa.js";
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
       { path: "focus", element: <EmptyPage /> },
       { path: "statistiques", element: <EmptyPage /> },
       { path: "travail", element: <WorkPage /> },
+      { path: "travail/calendrier", element: <WorkCalendarPage /> },
       { path: "recap", element: <EmptyPage /> },
       { path: "scan", element: <ScanPage /> }
     ]
