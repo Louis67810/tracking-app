@@ -148,12 +148,13 @@ a {
 }
 
 .score-track {
-  stroke: rgba(255, 255, 255, 0.58);
+  stroke: rgba(255, 255, 255, 0.25);
 }
 
 .score-progress {
   stroke: url("#scoreStroke");
   stroke-linecap: round;
+  stroke-linejoin: round;
   transform: rotate(-90deg);
   transform-origin: 25px 25px;
 }
@@ -340,14 +341,15 @@ h1 {
 
 .nav-item svg {
   color: currentColor;
-  fill: none;
-  stroke: currentColor;
+  fill: currentColor;
+  stroke: none;
   overflow: visible;
   transition: color 140ms ease-out;
 }
 
 .nav-item svg * {
-  fill: none;
+  fill: currentColor;
+  stroke: none;
 }
 
 .nav-item.active {
