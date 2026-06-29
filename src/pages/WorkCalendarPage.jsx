@@ -8,8 +8,8 @@ import {
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const START_HOUR = 6;
-const END_HOUR = 22;
+const START_HOUR = 0;
+const END_HOUR = 24;
 const HOUR_HEIGHT = 52;
 
 const colorOptions = [
@@ -20,9 +20,9 @@ const colorOptions = [
 ];
 
 const initialTasks = [
-  { id: "screen-1", title: "Tâche", subtitle: "Temps d'écran moyen", dayOffset: 0, start: 6.5, duration: 1.75, color: colorOptions[0] },
-  { id: "screen-2", title: "Tâche", subtitle: "Temps d'écran moyen", dayOffset: 0, start: 8.5, duration: 1.75, color: colorOptions[1] },
-  { id: "screen-3", title: "Tâche", subtitle: "Temps d'écran moyen", dayOffset: 0, start: 10.5, duration: 1.75, color: colorOptions[2] }
+  { id: "screen-1", title: "Tâche", dayOffset: 0, start: 6.5, duration: 1.75, color: colorOptions[0] },
+  { id: "screen-2", title: "Tâche", dayOffset: 0, start: 8.5, duration: 1.75, color: colorOptions[1] },
+  { id: "screen-3", title: "Tâche", dayOffset: 0, start: 10.5, duration: 1.75, color: colorOptions[2] }
 ];
 
 function formatDate(offset) {
@@ -49,47 +49,37 @@ function nearestQuarter(value) {
   return Math.round(value * 4) / 4;
 }
 
+function durationFromParts(hours, minutes) {
+  return Math.max(1 / 60, Number(hours || 0) + Number(minutes || 0) / 60);
+}
+
 export default function WorkCalendarPage() {
   const navigate = useNavigate();
   const [dayOffset, setDayOffset] = useState(0);
   const [tasks, setTasks] = useState(initialTasks);
   const [isComposerOpen, setComposerOpen] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState(null);
+  const [quickMenu, setQuickMenu] = useState(null);
   const [draft, setDraft] = useState({
     title: "",
     color: colorOptions[0].value,
     dayOffset: 0,
     start: "12:30",
-    duration: "1"
+    durationHours: "1",
+    durationMinutes: "0"
   });
   const dragState = useRef(null);
+  const longPressTimer = useRef(null);
 
   const visibleTasks = useMemo(
     () => tasks.filter((task) => task.dayOffset === dayOffset).sort((a, b) => a.start - b.start),
     [tasks, dayOffset]
   );
 
-  const freeBlocks = useMemo(() => {
-    const gaps = [];
-    let cursor = START_HOUR;
-
-    visibleTasks.forEach((task) => {
-      if (task.start - cursor >= 0.75) {
-        gaps.push({ id: `free-${cursor}`, start: cursor, duration: task.start - cursor });
-      }
-      cursor = Math.max(cursor, task.start + task.duration);
-    });
-
-    if (END_HOUR - cursor >= 0.75) {
-      gaps.push({ id: `free-${cursor}`, start: cursor, duration: END_HOUR - cursor });
-    }
-
-    return gaps;
-  }, [visibleTasks]);
-
   function createTask(event) {
     event.preventDefault();
     const color = colorOptions.find((option) => option.value === draft.color) ?? colorOptions[0];
-    const duration = Number(draft.duration);
+    const duration = durationFromParts(draft.durationHours, draft.durationMinutes);
     const start = clampTaskStart(fromTimeValue(draft.start), duration);
 
     setTasks((current) => [
@@ -97,7 +87,6 @@ export default function WorkCalendarPage() {
       {
         id: crypto.randomUUID?.() ?? `task-${Date.now()}`,
         title: draft.title.trim() || "Tâche",
-        subtitle: "Objectif lié à définir",
         dayOffset: Number(draft.dayOffset),
         start,
         duration,
@@ -109,9 +98,73 @@ export default function WorkCalendarPage() {
     setDraft((current) => ({ ...current, title: "" }));
   }
 
+  function openQuickMenu(task, anchor) {
+    setQuickMenu({
+      id: task.id,
+      title: task.title,
+      color: task.color.value,
+      durationHours: String(Math.floor(task.duration)),
+      durationMinutes: String(Math.round((task.duration - Math.floor(task.duration)) * 60)),
+      x: Math.min(252, Math.max(72, anchor.x)),
+      y: Math.max(12, anchor.y)
+    });
+  }
+
+  function startLongPress(task, event) {
+    if (event.target.closest(".task-grip")) return;
+    const boardRect = event.currentTarget.closest(".calendar-board")?.getBoundingClientRect();
+    const taskRect = event.currentTarget.getBoundingClientRect();
+    const anchor = {
+      x: taskRect.right - (boardRect?.left ?? 0) - 120,
+      y: taskRect.top - (boardRect?.top ?? 0) + 10
+    };
+    window.clearTimeout(longPressTimer.current);
+    longPressTimer.current = window.setTimeout(() => openQuickMenu(task, anchor), 520);
+  }
+
+  function cancelLongPress() {
+    window.clearTimeout(longPressTimer.current);
+  }
+
+  function updateQuickTask(patch) {
+    if (!quickMenu) return;
+    setTasks((current) =>
+      current.map((task) => {
+        if (task.id !== quickMenu.id) return task;
+        const color = patch.color
+          ? colorOptions.find((option) => option.value === patch.color) ?? task.color
+          : task.color;
+        const nextDuration =
+          patch.durationHours !== undefined || patch.durationMinutes !== undefined
+            ? durationFromParts(
+                patch.durationHours ?? quickMenu.durationHours,
+                patch.durationMinutes ?? quickMenu.durationMinutes
+              )
+            : task.duration;
+        return {
+          ...task,
+          title: patch.title ?? task.title,
+          color,
+          duration: nextDuration,
+          start: clampTaskStart(task.start, nextDuration)
+        };
+      })
+    );
+    setQuickMenu((current) => (current ? { ...current, ...patch } : current));
+  }
+
+  function deleteQuickTask() {
+    if (!quickMenu) return;
+    setTasks((current) => current.filter((task) => task.id !== quickMenu.id));
+    setQuickMenu(null);
+  }
+
   function startDrag(event, task) {
     event.preventDefault();
+    setQuickMenu(null);
+    window.clearTimeout(longPressTimer.current);
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    setActiveTaskId(task.id);
     dragState.current = {
       id: task.id,
       initialY: event.clientY,
@@ -126,15 +179,39 @@ export default function WorkCalendarPage() {
 
     const deltaHours = (event.clientY - drag.initialY) / HOUR_HEIGHT;
     const nextStart = clampTaskStart(nearestQuarter(drag.initialStart + deltaHours), drag.duration);
-    setTasks((current) => current.map((task) => (task.id === drag.id ? { ...task, start: nextStart } : task)));
+    setTasks((current) => {
+      const draggedTask = current.find((task) => task.id === drag.id);
+      const crossedTask = current
+        .filter((task) => task.id !== drag.id && task.dayOffset === draggedTask?.dayOffset)
+        .find((task) => {
+          const wasAbove = drag.initialStart < task.start;
+          const wasBelow = drag.initialStart > task.start;
+          const draggedMid = nextStart + drag.duration / 2;
+          const targetMid = task.start + task.duration / 2;
+          return (wasAbove && draggedMid > targetMid) || (wasBelow && draggedMid < targetMid);
+        });
+      const moved = current.map((task) => {
+        if (task.id === drag.id) return { ...task, start: nextStart };
+        if (crossedTask && task.id === crossedTask.id) return { ...task, start: drag.initialStart };
+        return task;
+      });
+      if (crossedTask) {
+        drag.initialStart = crossedTask.start;
+        drag.initialY = event.clientY;
+      }
+      return moved
+        .slice()
+        .sort((a, b) => (a.dayOffset === b.dayOffset ? a.start - b.start : a.dayOffset - b.dayOffset));
+    });
   }
 
   function endDrag() {
     dragState.current = null;
+    setActiveTaskId(null);
   }
 
   return (
-    <section className="calendar-page page-surface">
+    <section className="calendar-page page-surface" onPointerDown={() => quickMenu && setQuickMenu(null)}>
       <div className={isComposerOpen ? "calendar-content is-blurred" : "calendar-content"}>
         <header className="calendar-topbar">
           <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/travail")}>
@@ -171,32 +248,28 @@ export default function WorkCalendarPage() {
                 <span className="hour-line" style={{ top: index * HOUR_HEIGHT }} key={index} />
               ))}
 
-              {freeBlocks.map((block) => (
-                <div
-                  className="free-block"
-                  key={block.id}
-                  style={{
-                    top: (block.start - START_HOUR) * HOUR_HEIGHT,
-                    height: Math.max(84, block.duration * HOUR_HEIGHT - 12)
-                  }}
-                >
-                  <span>Libre</span>
-                </div>
-              ))}
-
               {visibleTasks.map((task) => (
                 <article
-                  className="calendar-task"
+                  className={activeTaskId === task.id ? "calendar-task is-dragging" : "calendar-task"}
                   key={task.id}
                   style={{
                     top: (task.start - START_HOUR) * HOUR_HEIGHT,
                     height: Math.max(92, task.duration * HOUR_HEIGHT - 12),
                     "--task-glow": task.color.glow
                   }}
+                  onPointerDown={(event) => startLongPress(task, event)}
+                  onPointerUp={cancelLongPress}
+                  onPointerCancel={cancelLongPress}
+                  onPointerLeave={cancelLongPress}
+                  onMouseDown={(event) => startLongPress(task, event)}
+                  onMouseUp={cancelLongPress}
+                  onMouseLeave={cancelLongPress}
+                  onTouchStart={(event) => startLongPress(task, event)}
+                  onTouchEnd={cancelLongPress}
+                  onTouchCancel={cancelLongPress}
                 >
                   <div className="task-copy">
                     <strong>{task.title}</strong>
-                    <span>{task.subtitle}</span>
                   </div>
                   <button
                     className="task-grip"
@@ -216,6 +289,67 @@ export default function WorkCalendarPage() {
               ))}
             </div>
           </div>
+          {quickMenu && (
+            <div
+              className="quick-task-menu"
+              style={{ left: quickMenu.x, top: quickMenu.y }}
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <label>
+                <span>Nom</span>
+                <input
+                  value={quickMenu.title}
+                  onChange={(event) => {
+                    setQuickMenu({ ...quickMenu, title: event.target.value });
+                    updateQuickTask({ title: event.target.value });
+                  }}
+                />
+              </label>
+
+              <div className="quick-color-row">
+                {colorOptions.map((option) => (
+                  <button
+                    className={quickMenu.color === option.value ? "color-swatch is-selected" : "color-swatch"}
+                    type="button"
+                    key={option.value}
+                    aria-label={option.name}
+                    style={{ background: option.value }}
+                    onClick={() => {
+                      setQuickMenu({ ...quickMenu, color: option.value });
+                      updateQuickTask({ color: option.value });
+                    }}
+                  />
+                ))}
+              </div>
+
+              <div className="quick-duration-row">
+                <label>
+                  <span>H</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="24"
+                    value={quickMenu.durationHours}
+                    onChange={(event) => updateQuickTask({ durationHours: event.target.value })}
+                  />
+                </label>
+                <label>
+                  <span>Min</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={quickMenu.durationMinutes}
+                    onChange={(event) => updateQuickTask({ durationMinutes: event.target.value })}
+                  />
+                </label>
+              </div>
+
+              <button className="quick-delete" type="button" onClick={deleteQuickTask}>
+                Supprimer
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -232,13 +366,6 @@ export default function WorkCalendarPage() {
                 <input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Tâche" />
               </label>
 
-              <label className="composer-field">
-                <span>Objectif lié</span>
-                <select disabled value="">
-                  <option value="">À connecter plus tard</option>
-                </select>
-              </label>
-
               <div className="composer-row">
                 <label className="composer-field">
                   <span>Jour</span>
@@ -251,18 +378,17 @@ export default function WorkCalendarPage() {
 
                 <label className="composer-field">
                   <span>Heure</span>
-                  <input type="time" min="06:00" max="21:30" step="900" value={draft.start} onChange={(event) => setDraft({ ...draft, start: event.target.value })} />
+                  <input type="time" min="00:00" max="23:59" step="60" value={draft.start} onChange={(event) => setDraft({ ...draft, start: event.target.value })} />
                 </label>
 
                 <label className="composer-field">
-                  <span>Durée</span>
-                  <select value={draft.duration} onChange={(event) => setDraft({ ...draft, duration: event.target.value })}>
-                    <option value="0.5">30 min</option>
-                    <option value="1">1 h</option>
-                    <option value="1.5">1 h 30</option>
-                    <option value="2">2 h</option>
-                    <option value="3">3 h</option>
-                  </select>
+                  <span>Heures</span>
+                  <input type="number" min="0" max="24" value={draft.durationHours} onChange={(event) => setDraft({ ...draft, durationHours: event.target.value })} />
+                </label>
+
+                <label className="composer-field">
+                  <span>Minutes</span>
+                  <input type="number" min="0" max="59" value={draft.durationMinutes} onChange={(event) => setDraft({ ...draft, durationMinutes: event.target.value })} />
                 </label>
               </div>
 

@@ -59,15 +59,16 @@ checks.calendar = {
 
 await page.locator(".calendar-add").click();
 await page.locator(".task-composer").waitFor({ state: "visible" });
-await page.locator('.composer-field input[placeholder="Tâche"]').fill("Test création");
+await page.locator(".composer-field input").first().fill("Test creation");
 await page.locator(".color-swatch").nth(2).click();
 await page.locator(".create-task-button").click();
 await page.locator(".task-composer").waitFor({ state: "detached" });
 await page.waitForTimeout(350);
 checks.calendar.afterCreate = {
   taskCount: await page.locator(".calendar-task").count(),
+  freeCount: await page.locator(".free-block").count(),
   hasCreatedTask: (await page.locator(".calendar-task").evaluateAll((nodes) => nodes.map((node) => node.innerText))).some((text) =>
-    text.includes("Test création")
+    text.includes("Test creation")
   )
 };
 
@@ -77,6 +78,33 @@ await page.locator(".calendar-scroll").evaluate((node) => {
 });
 await page.waitForTimeout(100);
 await page.screenshot({ path: "calendar-page-verify.png", fullPage: true });
+
+const createdTask = page.locator(".calendar-task").filter({ hasText: "Test creation" }).first();
+await createdTask.scrollIntoViewIfNeeded();
+const createdBox = await createdTask.boundingBox();
+if (createdBox) {
+  await page.mouse.move(createdBox.x + createdBox.width / 2, createdBox.y + createdBox.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(650);
+  await page.mouse.up();
+}
+await page.locator(".quick-task-menu").waitFor({ state: "visible" });
+await page.locator(".quick-task-menu input").first().fill("Rapide");
+await page.locator(".quick-duration-row input").first().fill("2");
+await page.locator(".quick-duration-row input").nth(1).fill("15");
+checks.calendar.quickMenu = {
+  visible: await page.locator(".quick-task-menu").isVisible(),
+  renamed: (await page.locator(".calendar-task").evaluateAll((nodes) => nodes.map((node) => node.innerText))).some((text) =>
+    text.includes("Rapide")
+  )
+};
+await page.locator(".quick-delete").click();
+checks.calendar.afterQuickDelete = {
+  taskCount: await page.locator(".calendar-task").count(),
+  removed: (await page.locator(".calendar-task").evaluateAll((nodes) => nodes.map((node) => node.innerText))).every((text) =>
+    !text.includes("Rapide")
+  )
+};
 
 const firstGrip = page.locator(".task-grip").first();
 const beforeDragTop = await page.locator(".calendar-task").first().evaluate((node) => getComputedStyle(node).top);
