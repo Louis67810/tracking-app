@@ -57,6 +57,24 @@ checks.calendar = {
   workNavActive: await page.locator('a[href="/travail"]').evaluate((node) => node.classList.contains("active"))
 };
 
+const firstTaskForSwipe = page.locator(".calendar-task").first();
+const firstSwipeBox = await firstTaskForSwipe.boundingBox();
+if (firstSwipeBox) {
+  await page.mouse.move(firstSwipeBox.x + 52, firstSwipeBox.y + firstSwipeBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(firstSwipeBox.x + 168, firstSwipeBox.y + firstSwipeBox.height / 2, { steps: 8 });
+  await page.mouse.up();
+}
+checks.calendar.swipeActions = {
+  opened: await page.locator(".task-swipe-shell.is-swiped").count(),
+  labels: await page.locator(".task-swipe-shell.is-swiped .swipe-actions button").evaluateAll((nodes) =>
+    nodes.map((node) => node.textContent?.trim())
+  )
+};
+await page.locator(".calendar-board").click({ position: { x: 340, y: 620 } });
+await page.waitForTimeout(150);
+checks.calendar.swipeActions.closed = (await page.locator(".task-swipe-shell.is-swiped").count()) === 0;
+
 await page.locator(".calendar-add").click();
 await page.locator(".task-composer").waitFor({ state: "visible" });
 await page.locator(".composer-field input").first().fill("Test creation");
@@ -107,7 +125,7 @@ checks.calendar.afterQuickDelete = {
 };
 
 const firstGrip = page.locator(".task-grip").first();
-const beforeDragTop = await page.locator(".calendar-task").first().evaluate((node) => getComputedStyle(node).top);
+const beforeDragTop = await page.locator(".task-swipe-shell").first().evaluate((node) => getComputedStyle(node).top);
 const gripBox = await firstGrip.boundingBox();
 if (gripBox) {
   await page.mouse.move(gripBox.x + gripBox.width / 2, gripBox.y + gripBox.height / 2);
@@ -115,7 +133,7 @@ if (gripBox) {
   await page.mouse.move(gripBox.x + gripBox.width / 2, gripBox.y + gripBox.height / 2 + 52, { steps: 8 });
   await page.mouse.up();
 }
-const afterDragTop = await page.locator(".calendar-task").first().evaluate((node) => getComputedStyle(node).top);
+const afterDragTop = await page.locator(".task-swipe-shell").first().evaluate((node) => getComputedStyle(node).top);
 checks.calendar.dragMoved = beforeDragTop !== afterDragTop;
 
 await page.locator(".calendar-back").click();
