@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import ScoreRing from "../ui/ScoreRing.jsx";
 
 const mainScore = 90;
@@ -28,7 +28,7 @@ export default function WorkPage() {
             <span className="card-label">
               {label}
               <span className="arrow-disc" aria-hidden="true">
-                <ArrowRight size={16} strokeWidth={2.4} />
+                <ArrowRightIcon width={15.5} height={15.5} strokeWidth={2.2} />
               </span>
             </span>
             <span className="card-light" aria-hidden="true" />

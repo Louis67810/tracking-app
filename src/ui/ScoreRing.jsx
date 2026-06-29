@@ -6,7 +6,7 @@ export default function ScoreRing({ score }) {
     <div className="score-ring" style={{ "--score-angle": angle }} aria-label={`Score ${normalized}`}>
       <div className="score-value">
         <span>{normalized}</span>
-        <i aria-hidden="true" />
+        <img src="/assets/score-triangle.svg" alt="" aria-hidden="true" />
       </div>
     </div>
   );

@@ -1,12 +1,18 @@
-import { BarChart3, BriefcaseBusiness, ContactRound, Flame, Home } from "lucide-react";
+import {
+  BriefcaseIcon,
+  ChartBarIcon,
+  FireIcon,
+  HomeIcon,
+  IdentificationIcon
+} from "@heroicons/react/24/outline";
 import { NavLink } from "react-router-dom";
 
 const items = [
-  { to: "/accueil", label: "Accueil", icon: Home },
-  { to: "/focus", label: "Focus", icon: Flame },
-  { to: "/statistiques", label: "Statistiques", icon: BarChart3 },
-  { to: "/travail", label: "Travail", icon: BriefcaseBusiness },
-  { to: "/recap", label: "Récap", icon: ContactRound }
+  { to: "/accueil", label: "Accueil", icon: HomeIcon },
+  { to: "/focus", label: "Focus", icon: FireIcon },
+  { to: "/statistiques", label: "Statistiques", icon: ChartBarIcon },
+  { to: "/travail", label: "Travail", icon: BriefcaseIcon },
+  { to: "/recap", label: "Récap", icon: IdentificationIcon }
 ];
 
 export default function BottomNav() {
@@ -15,7 +21,7 @@ export default function BottomNav() {
       {items.map(({ to, label, icon: Icon }) => (
         <NavLink key={to} to={to} className="nav-item">
           <span className="nav-glow" aria-hidden="true" />
-          <Icon size={24} strokeWidth={2.8} />
+          <Icon width={24} height={24} strokeWidth={2.45} />
           <span>{label}</span>
         </NavLink>
       ))}
