@@ -21,7 +21,7 @@ export default function BottomNav() {
       {items.map(({ to, label, icon: Icon }) => (
         <NavLink key={to} to={to} className="nav-item">
           <span className="nav-glow" aria-hidden="true" />
-          <Icon width={24} height={24} strokeWidth={2.45} />
+          <Icon width={24} height={24} strokeWidth={2.25} />
           <span>{label}</span>
         </NavLink>
       ))}

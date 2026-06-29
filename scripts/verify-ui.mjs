@@ -15,7 +15,25 @@ page.on("console", (msg) => {
 });
 page.on("pageerror", (error) => errors.push(error.message));
 
-await page.goto("http://127.0.0.1:5173/travail", { waitUntil: "networkidle" });
+const ports = [5173, 5174];
+let appUrl = null;
+
+for (const port of ports) {
+  const candidate = `http://127.0.0.1:${port}/travail`;
+  try {
+    const response = await fetch(candidate);
+    if (response.ok) {
+      appUrl = candidate;
+      break;
+    }
+  } catch {}
+}
+
+if (!appUrl) {
+  throw new Error("No Vite dev server found on ports 5173 or 5174");
+}
+
+await page.goto(appUrl, { waitUntil: "networkidle" });
 
 const checks = {
   title: await page.locator("h1").textContent(),

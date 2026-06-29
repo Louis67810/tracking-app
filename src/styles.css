@@ -14,6 +14,14 @@
   box-sizing: border-box;
 }
 
+*,
+button,
+input,
+textarea,
+select {
+  font-family: "SF Pro Rounded", "SF Pro", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+}
+
 html,
 body,
 #root {
@@ -125,15 +133,29 @@ a {
   background: transparent;
 }
 
-.score-ring::before {
-  content: "";
+.score-ring-svg {
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  background: conic-gradient(from 0deg, #1ba2ff 0 var(--score-angle), rgba(255, 255, 255, 0.34) var(--score-angle) 360deg);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3.1px), #000 calc(100% - 2.9px));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.1px), #000 calc(100% - 2.9px));
-  opacity: 0.95;
+  width: 50px;
+  height: 50px;
+  overflow: visible;
+}
+
+.score-track,
+.score-progress {
+  fill: none;
+  stroke-width: 3px;
+}
+
+.score-track {
+  stroke: rgba(255, 255, 255, 0.58);
+}
+
+.score-progress {
+  stroke: url("#scoreStroke");
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 25px 25px;
 }
 
 .score-value {
@@ -146,7 +168,7 @@ a {
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0;
-  background: linear-gradient(67.7deg, #46abe2 4.99%, #aecfe0 95.01%);
+  background: linear-gradient(67.7deg, #007cef 4.99%, #8dc4e1 95.01%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -319,8 +341,13 @@ h1 {
 .nav-item svg {
   color: currentColor;
   fill: none;
+  stroke: currentColor;
   overflow: visible;
   transition: color 140ms ease-out;
+}
+
+.nav-item svg * {
+  fill: none;
 }
 
 .nav-item.active {
