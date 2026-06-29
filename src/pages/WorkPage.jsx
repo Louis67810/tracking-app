@@ -5,7 +5,7 @@ import ScoreRing from "../ui/ScoreRing.jsx";
 const mainScore = 90;
 const workLinks = [
   { label: "Calendrier", to: "/travail/calendrier" },
-  { label: "Tes tâches" },
+  { label: "Tes tâches", to: "/travail/taches" },
   { label: "Tes objectifs" }
 ];
 

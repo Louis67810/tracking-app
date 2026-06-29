@@ -48,6 +48,50 @@ const checks = {
 
 await page.screenshot({ path: "work-page-verify.png", fullPage: true });
 
+await page.locator(".work-card").filter({ hasText: "Tes tâches" }).click();
+await page.waitForURL("**/travail/taches");
+checks.tasks = {
+  title: await page.locator(".tasks-title").textContent(),
+  day: await page.locator(".tasks-day-pill").textContent(),
+  rowCount: await page.locator(".task-row").count(),
+  workNavActive: await page.locator('a[href="/travail"]').evaluate((node) => node.classList.contains("active"))
+};
+
+await page.locator(".calendar-add").click();
+await page.locator(".tasks-composer").waitFor({ state: "visible" });
+await page.locator(".tasks-composer .composer-field input").first().fill("Test tâche");
+await page.locator(".tasks-composer .color-swatch").nth(1).click();
+await page.locator(".tasks-composer .create-task-button").click();
+await page.locator(".tasks-composer").waitFor({ state: "detached" });
+await page.waitForTimeout(250);
+checks.tasks.afterCreate = {
+  rowCount: await page.locator(".task-row").count(),
+  hasCreatedTask: (await page.locator(".task-row").evaluateAll((nodes) => nodes.map((node) => node.innerText))).some((text) =>
+    text.includes("Test tâche")
+  )
+};
+
+const createdTaskRow = page.locator(".task-row").filter({ hasText: "Test tâche" }).first();
+await createdTaskRow.locator(".task-check").click();
+checks.tasks.afterCheck = await createdTaskRow.evaluate((node) => node.classList.contains("is-complete"));
+await createdTaskRow.locator(".task-actions-pill button").nth(1).click();
+await page.waitForTimeout(150);
+checks.tasks.afterMoveDay = {
+  todayCount: await page.locator(".task-row").count()
+};
+await page.locator(".tasks-day-switcher button").nth(1).click();
+await page.waitForTimeout(150);
+checks.tasks.afterNextDay = {
+  day: await page.locator(".tasks-day-pill").textContent(),
+  hasMovedTask: (await page.locator(".task-row").evaluateAll((nodes) => nodes.map((node) => node.innerText))).some((text) =>
+    text.includes("Test tâche")
+  )
+};
+await page.screenshot({ path: "tasks-page-verify.png", fullPage: true });
+
+await page.locator(".calendar-back").click();
+await page.waitForURL("**/travail");
+
 await page.locator(".work-card").filter({ hasText: "Calendrier" }).click();
 await page.waitForURL("**/travail/calendrier");
 checks.calendar = {
