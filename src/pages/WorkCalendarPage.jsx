@@ -13,6 +13,9 @@ const END_HOUR = 24;
 const HOUR_HEIGHT = 52;
 const SWIPE_REVEAL = 116;
 const SWIPE_THRESHOLD = 72;
+const QUICK_MENU_WIDTH = 176;
+const QUICK_MENU_HEIGHT = 240;
+const QUICK_MENU_GAP = 8;
 
 const colorOptions = [
   { name: "Bleu", value: "#8BE2FF", glow: "139, 226, 255" },
@@ -53,6 +56,21 @@ function nearestQuarter(value) {
 
 function durationFromParts(hours, minutes) {
   return Math.max(1 / 60, Number(hours || 0) + Number(minutes || 0) / 60);
+}
+
+function getQuickMenuAnchor(taskRect, boardRect) {
+  const taskLeft = taskRect.left - boardRect.left;
+  const taskTop = taskRect.top - boardRect.top;
+  const taskBottom = taskRect.bottom - boardRect.top;
+  const maxX = boardRect.width - QUICK_MENU_WIDTH - QUICK_MENU_GAP;
+  const belowY = taskBottom + QUICK_MENU_GAP;
+  const topY = taskTop - QUICK_MENU_HEIGHT - QUICK_MENU_GAP;
+  const y = belowY + QUICK_MENU_HEIGHT <= boardRect.height - QUICK_MENU_GAP ? belowY : topY;
+
+  return {
+    x: Math.min(maxX, Math.max(QUICK_MENU_GAP, taskLeft)),
+    y: Math.max(QUICK_MENU_GAP, y)
+  };
 }
 
 export default function WorkCalendarPage() {
@@ -112,7 +130,7 @@ export default function WorkCalendarPage() {
       color: task.color.value,
       durationHours: String(Math.floor(task.duration)),
       durationMinutes: String(Math.round((task.duration - Math.floor(task.duration)) * 60)),
-      x: Math.min(252, Math.max(72, anchor.x)),
+      x: anchor.x,
       y: Math.max(12, anchor.y)
     });
   }
@@ -121,10 +139,8 @@ export default function WorkCalendarPage() {
     if (event.target.closest(".task-grip")) return;
     const boardRect = event.currentTarget.closest(".calendar-board")?.getBoundingClientRect();
     const taskRect = event.currentTarget.getBoundingClientRect();
-    const anchor = {
-      x: taskRect.right - (boardRect?.left ?? 0) - 120,
-      y: taskRect.top - (boardRect?.top ?? 0) + 10
-    };
+    if (!boardRect) return;
+    const anchor = getQuickMenuAnchor(taskRect, boardRect);
     window.clearTimeout(longPressTimer.current);
     longPressTimer.current = window.setTimeout(() => openQuickMenu(task, anchor), 520);
   }
@@ -174,11 +190,9 @@ export default function WorkCalendarPage() {
 
   function openQuickMenuFromButton(task, event) {
     const boardRect = event.currentTarget.closest(".calendar-board")?.getBoundingClientRect();
-    const buttonRect = event.currentTarget.getBoundingClientRect();
-    openQuickMenu(task, {
-      x: buttonRect.right - (boardRect?.left ?? 0) + 8,
-      y: buttonRect.top - (boardRect?.top ?? 0) - 4
-    });
+    const taskRect = event.currentTarget.closest(".task-swipe-shell")?.getBoundingClientRect();
+    if (!boardRect || !taskRect) return;
+    openQuickMenu(task, getQuickMenuAnchor(taskRect, boardRect));
   }
 
   function startSwipe(event, task) {
