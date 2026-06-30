@@ -42,11 +42,16 @@ export default function WorkObjectivesPage() {
     updateSubObjective,
     deleteSubObjective,
     createTask,
+    updateTask,
     toggleTask
   } = useWorkData();
   const [composer, setComposer] = useState(null);
+  const [addMode, setAddMode] = useState(false);
+  const [selectedTarget, setSelectedTarget] = useState(null);
   const [swipe, setSwipe] = useState({ type: null, id: null, x: 0, openId: null });
   const swipeRef = useRef(null);
+  const plusTimer = useRef(null);
+  const longPressTriggered = useRef(false);
 
   const objectiveViews = useMemo(
     () =>
@@ -72,8 +77,15 @@ export default function WorkObjectivesPage() {
       color: payload.color?.value ?? workColors[0].value,
       objectiveId: payload.objectiveId ?? "",
       subObjectiveId: payload.subObjectiveId ?? "",
+      taskMode: "create",
+      taskId: "",
       id: payload.id ?? null
     });
+  }
+
+  function openAddComposer(type, payload) {
+    setSelectedTarget(`${type}-${payload.objectiveId}-${payload.subObjectiveId ?? "root"}`);
+    openComposer(type, payload);
   }
 
   function submitComposer(event) {
@@ -94,16 +106,47 @@ export default function WorkObjectivesPage() {
     }
     if (composer.type === "task") {
       const objective = objectives.find((item) => item.id === composer.objectiveId);
-      createTask({
-        title: composer.title,
-        hasDate: false,
-        color: objective?.color ?? workColors[0],
-        objectiveId: composer.objectiveId,
-        subObjectiveId: composer.subObjectiveId || null
-      });
+      if (composer.taskMode === "assign" && composer.taskId) {
+        updateTask(composer.taskId, {
+          objectiveId: composer.objectiveId,
+          subObjectiveId: composer.subObjectiveId || null,
+          color: objective?.color ?? workColors[0]
+        });
+      } else {
+        createTask({
+          title: composer.title,
+          hasDate: false,
+          color: objective?.color ?? workColors[0],
+          objectiveId: composer.objectiveId,
+          subObjectiveId: composer.subObjectiveId || null
+        });
+      }
     }
     setComposer(null);
+    setSelectedTarget(null);
     setSwipe({ type: null, id: null, x: 0, openId: null });
+  }
+
+  function startPlusPress() {
+    longPressTriggered.current = false;
+    window.clearTimeout(plusTimer.current);
+    plusTimer.current = window.setTimeout(() => {
+      longPressTriggered.current = true;
+      setAddMode((value) => !value);
+      setSelectedTarget(null);
+    }, 520);
+  }
+
+  function endPlusPress() {
+    window.clearTimeout(plusTimer.current);
+  }
+
+  function clickPlus() {
+    if (longPressTriggered.current) {
+      longPressTriggered.current = false;
+      return;
+    }
+    openComposer("objective");
   }
 
   function startSwipe(event, type, id) {
@@ -153,7 +196,15 @@ export default function WorkObjectivesPage() {
           <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/travail")}>
             <ArrowLeftIcon width={24} height={24} />
           </button>
-          <button className="calendar-add" type="button" aria-label="Creer un objectif" onClick={() => openComposer("objective")}>
+          <button
+            className={addMode ? "calendar-add is-add-mode" : "calendar-add"}
+            type="button"
+            aria-label="Creer un objectif"
+            onPointerDown={startPlusPress}
+            onPointerUp={endPlusPress}
+            onPointerCancel={endPlusPress}
+            onClick={clickPlus}
+          >
             <PlusIcon width={24} height={24} />
           </button>
         </header>
@@ -189,6 +240,7 @@ export default function WorkObjectivesPage() {
                     <i className="progress-track">
                       <b style={{ width: `${objective.progress}%` }} />
                     </i>
+                    <em>{objective.progress}%</em>
                   </button>
                   <button className={objective.expanded ? "expand-button is-open" : "expand-button"} type="button" onClick={() => updateObjective(objective.id, { expanded: !objective.expanded })}>
                     <ChevronDownIcon width={16} height={16} />
@@ -207,6 +259,7 @@ export default function WorkObjectivesPage() {
                           <i className="progress-track">
                             <b style={{ width: `${subObjective.progress}%` }} />
                           </i>
+                          <em>{subObjective.progress}%</em>
                         </button>
                         <button className={subObjective.expanded ? "expand-button is-open" : "expand-button"} type="button" onClick={() => updateSubObjective(objective.id, subObjective.id, { expanded: !subObjective.expanded })}>
                           <ChevronDownIcon width={16} height={16} />
@@ -224,8 +277,16 @@ export default function WorkObjectivesPage() {
                             </div>
                           </article>
                         ))}
-                      {subObjective.expanded && (
-                        <button className="add-linked-task" type="button" onClick={() => openComposer("task", { objectiveId: objective.id, subObjectiveId: subObjective.id })}>
+                      {subObjective.expanded && addMode && (
+                        <button
+                          className={
+                            selectedTarget === `task-${objective.id}-${subObjective.id}`
+                              ? "add-linked-task is-selected"
+                              : "add-linked-task"
+                          }
+                          type="button"
+                          onClick={() => openAddComposer("task", { objectiveId: objective.id, subObjectiveId: subObjective.id })}
+                        >
                           Ajouter une tâche
                         </button>
                       )}
@@ -244,14 +305,24 @@ export default function WorkObjectivesPage() {
                     </article>
                   ))}
 
+                  {addMode && (
                   <div className="objective-add-row">
-                    <button type="button" onClick={() => openComposer("sub", { objectiveId: objective.id })}>
+                    <button
+                      className={selectedTarget === `sub-${objective.id}-root` ? "is-selected" : ""}
+                      type="button"
+                      onClick={() => openAddComposer("sub", { objectiveId: objective.id })}
+                    >
                       Ajouter un sous-objectif
                     </button>
-                    <button type="button" onClick={() => openComposer("task", { objectiveId: objective.id })}>
+                    <button
+                      className={selectedTarget === `task-${objective.id}-root` ? "is-selected" : ""}
+                      type="button"
+                      onClick={() => openAddComposer("task", { objectiveId: objective.id })}
+                    >
                       Ajouter une tâche
                     </button>
                   </div>
+                  )}
                 </div>
               )}
             </div>
@@ -268,8 +339,45 @@ export default function WorkObjectivesPage() {
             <div className="composer-fields">
               <label className="composer-field">
                 <span>Nom</span>
-                <input value={composer.title} onChange={(event) => setComposer({ ...composer, title: event.target.value })} placeholder="Objectif" />
+                <input
+                  value={composer.title}
+                  disabled={composer.type === "task" && composer.taskMode === "assign"}
+                  onChange={(event) => setComposer({ ...composer, title: event.target.value })}
+                  placeholder="Objectif"
+                />
               </label>
+              {composer.type === "task" && (
+                <>
+                  <div className="composer-mode">
+                    <button
+                      className={composer.taskMode === "create" ? "is-selected" : ""}
+                      type="button"
+                      onClick={() => setComposer({ ...composer, taskMode: "create", taskId: "" })}
+                    >
+                      Créer
+                    </button>
+                    <button
+                      className={composer.taskMode === "assign" ? "is-selected" : ""}
+                      type="button"
+                      onClick={() => setComposer({ ...composer, taskMode: "assign", taskId: tasks[0]?.id ?? "" })}
+                    >
+                      Lier
+                    </button>
+                  </div>
+                  {composer.taskMode === "assign" && (
+                    <label className="composer-field">
+                      <span>Tâche existante</span>
+                      <select value={composer.taskId} onChange={(event) => setComposer({ ...composer, taskId: event.target.value })}>
+                        {tasks.map((task) => (
+                          <option value={task.id} key={task.id}>
+                            {task.title}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </>
+              )}
               {(composer.type === "objective" || composer.type === "edit-objective") && (
                 <div className="color-picker" aria-label="Couleur">
                   {workColors.map((option) => (

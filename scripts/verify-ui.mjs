@@ -54,7 +54,20 @@ checks.objectives = {
   title: await page.locator(".objectives-title").textContent(),
   cards: await page.locator(".objective-card").count(),
   progressBars: await page.locator(".progress-track").count(),
-  linkedTasks: await page.locator(".objective-task").count()
+  linkedTasks: await page.locator(".objective-task").count(),
+  addButtonsBeforeLongPress: await page.locator(".objective-add-row button, .add-linked-task").count()
+};
+const objectivePlus = page.locator(".objectives-page .calendar-add");
+const objectivePlusBox = await objectivePlus.boundingBox();
+if (objectivePlusBox) {
+  await page.mouse.move(objectivePlusBox.x + objectivePlusBox.width / 2, objectivePlusBox.y + objectivePlusBox.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(650);
+  await page.mouse.up();
+}
+checks.objectives.addMode = {
+  plusSelected: await objectivePlus.evaluate((node) => node.classList.contains("is-add-mode")),
+  addButtonsAfterLongPress: await page.locator(".objective-add-row button, .add-linked-task").count()
 };
 await page.locator(".calendar-add").click();
 await page.locator(".objectives-composer").waitFor({ state: "visible" });
