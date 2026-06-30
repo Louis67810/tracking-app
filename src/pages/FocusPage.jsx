@@ -194,12 +194,20 @@ export default function FocusPage() {
         </button>
       </div>
 
-      <button className="focus-primary" type="button" onClick={startTimer}>
+      <button
+        className={`focus-primary ${mode === "free" ? "is-dimmed" : ""}`}
+        type="button"
+        onClick={startTimer}
+      >
         {mode === "timer" && isRunning ? <PauseIcon width={20} height={20} /> : <PlayIcon width={20} height={20} />}
         <span>{mode === "timer" && isRunning ? "Pause" : "Démarrer"}</span>
       </button>
 
-      <button className="focus-secondary" type="button" onClick={startFree}>
+      <button
+        className={`focus-secondary ${mode === "timer" ? "is-dimmed" : ""}`}
+        type="button"
+        onClick={startFree}
+      >
         {mode === "free" && isRunning ? <PauseIcon width={20} height={20} /> : <PlayIcon width={20} height={20} />}
         <span>{mode === "free" && isRunning ? "Pause libre" : "Démarrer librement"}</span>
       </button>
