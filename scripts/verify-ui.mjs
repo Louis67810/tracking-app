@@ -60,20 +60,31 @@ await page.locator(".focus-adjust-right").click();
 checks.focus.afterPlus = await page.locator(".focus-time-value").textContent();
 await page.locator(".focus-adjust-left").click();
 checks.focus.afterMinus = await page.locator(".focus-time-value").textContent();
+await page.locator(".focus-playlist-card").first().click();
+checks.focus.playlistActive = await page.locator(".focus-playlist-card.is-active").count();
 await page.locator(".focus-primary").click();
 await page.waitForTimeout(1100);
 checks.focus.timerRunning = {
-  value: await page.locator(".focus-time-value").textContent(),
-  label: await page.locator(".focus-primary span").textContent()
+  value: await page.locator(".focus-session-clock").textContent(),
+  overlayVisible: await page.locator(".focus-session-overlay").isVisible()
 };
+await page.locator(".focus-stop-button").click();
+await page.locator(".early-exit-sheet").waitFor({ state: "visible" });
+const exitHold = page.locator(".early-exit-hold");
+const exitHoldBox = await exitHold.boundingBox();
+if (exitHoldBox) {
+  await page.mouse.move(exitHoldBox.x + exitHoldBox.width / 2, exitHoldBox.y + exitHoldBox.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(1000);
+  await page.mouse.up();
+}
+await page.locator(".focus-session-overlay").waitFor({ state: "detached" });
 await page.locator(".focus-secondary").click();
 await page.waitForTimeout(1100);
 checks.focus.freeRunning = {
-  value: await page.locator(".focus-time-value").textContent(),
-  label: await page.locator(".focus-secondary span").textContent()
+  value: await page.locator(".focus-session-clock").textContent(),
+  overlayVisible: await page.locator(".focus-session-overlay").isVisible()
 };
-await page.locator(".focus-playlist-card").first().click();
-checks.focus.playlistActive = await page.locator(".focus-playlist-card.is-active").count();
 await page.screenshot({ path: "focus-page-verify.png", fullPage: true });
 await page.goto(appUrl, { waitUntil: "networkidle" });
 

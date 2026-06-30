@@ -1,4 +1,4 @@
-import { MinusIcon, PauseIcon, PlayIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { MinusIcon, PlayIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ScoreRing from "../ui/ScoreRing.jsx";
 
@@ -47,8 +47,10 @@ export default function FocusPage() {
   const [mode, setMode] = useState("idle");
   const [isRunning, setIsRunning] = useState(false);
   const [activePlaylist, setActivePlaylist] = useState(null);
+  const [isExitPromptOpen, setIsExitPromptOpen] = useState(false);
   const audioRef = useRef(null);
   const ambientRef = useRef(null);
+  const exitHoldRef = useRef(null);
 
   useEffect(() => {
     if (mode === "timer" && !isRunning) {
@@ -82,6 +84,15 @@ export default function FocusPage() {
 
   useEffect(() => () => stopAudio(audioRef, ambientRef), []);
 
+  useEffect(
+    () => () => {
+      if (exitHoldRef.current) {
+        window.clearTimeout(exitHoldRef.current);
+      }
+    },
+    []
+  );
+
   const displayValue = useMemo(() => {
     if (mode === "free") return formatClock(elapsedSeconds);
     if (mode === "timer" && (isRunning || remainingSeconds !== durationMinutes * 60)) {
@@ -98,11 +109,6 @@ export default function FocusPage() {
   }
 
   function startTimer() {
-    if (mode === "timer" && isRunning) {
-      setIsRunning(false);
-      return;
-    }
-
     if (mode !== "timer" || remainingSeconds === 0) {
       setRemainingSeconds(durationMinutes * 60);
     }
@@ -112,11 +118,6 @@ export default function FocusPage() {
   }
 
   function startFree() {
-    if (mode === "free" && isRunning) {
-      setIsRunning(false);
-      return;
-    }
-
     if (mode !== "free") {
       setElapsedSeconds(0);
     }
@@ -157,6 +158,34 @@ export default function FocusPage() {
     ambientRef.current = { context, oscillator };
   }
 
+  function stopSession() {
+    if (exitHoldRef.current) {
+      window.clearTimeout(exitHoldRef.current);
+      exitHoldRef.current = null;
+    }
+
+    setIsRunning(false);
+    setIsExitPromptOpen(false);
+    setMode("idle");
+    setElapsedSeconds(0);
+    setRemainingSeconds(durationMinutes * 60);
+  }
+
+  function startExitHold() {
+    if (exitHoldRef.current) {
+      window.clearTimeout(exitHoldRef.current);
+    }
+
+    exitHoldRef.current = window.setTimeout(stopSession, 900);
+  }
+
+  function cancelExitHold() {
+    if (exitHoldRef.current) {
+      window.clearTimeout(exitHoldRef.current);
+      exitHoldRef.current = null;
+    }
+  }
+
   return (
     <section className="focus-page page-surface">
       <div className="focus-hero-art" aria-hidden="true" />
@@ -195,20 +224,20 @@ export default function FocusPage() {
       </div>
 
       <button
-        className={`focus-primary ${mode === "free" ? "is-dimmed" : ""}`}
+        className="focus-primary"
         type="button"
         onClick={startTimer}
       >
-        {mode === "timer" && isRunning ? <PauseIcon width={20} height={20} /> : <PlayIcon width={20} height={20} />}
+        <PlayIcon width={16} height={16} />
         <span>{mode === "timer" && isRunning ? "Pause" : "Démarrer"}</span>
       </button>
 
       <button
-        className={`focus-secondary ${mode === "timer" ? "is-dimmed" : ""}`}
+        className="focus-secondary"
         type="button"
         onClick={startFree}
       >
-        {mode === "free" && isRunning ? <PauseIcon width={20} height={20} /> : <PlayIcon width={20} height={20} />}
+        <PlayIcon width={16} height={16} />
         <span>{mode === "free" && isRunning ? "Pause libre" : "Démarrer librement"}</span>
       </button>
 
@@ -232,6 +261,44 @@ export default function FocusPage() {
       </div>
 
       <div className="focus-bottom-fade" aria-hidden="true" />
+
+      {isRunning && (
+        <div className="focus-session-overlay" role="dialog" aria-label="Session focus en cours">
+          <button className="focus-session-close" type="button" onClick={() => setIsExitPromptOpen(true)} aria-label="Quitter la session">
+            <XMarkIcon width={28} height={28} />
+          </button>
+          <div className="focus-session-clock" aria-live="polite">
+            {displayValue}
+          </div>
+          <button className="focus-stop-button" type="button" onClick={() => setIsExitPromptOpen(true)}>
+            Stopper
+          </button>
+
+          {isExitPromptOpen && (
+            <div className="early-exit-sheet" role="alertdialog" aria-label="Partir tôt">
+              <div className="early-exit-handle" aria-hidden="true" />
+              <div className="early-exit-icon" aria-hidden="true">
+                <XMarkIcon width={32} height={32} />
+              </div>
+              <h2>Partir tôt ?</h2>
+              <p>N'abandonne pas, tu as commencé pour une raison.</p>
+              <button
+                className="early-exit-hold"
+                type="button"
+                onPointerDown={startExitHold}
+                onPointerUp={cancelExitHold}
+                onPointerCancel={cancelExitHold}
+                onPointerLeave={cancelExitHold}
+              >
+                Maintiens pour partir
+              </button>
+              <button className="early-exit-cancel" type="button" onClick={() => setIsExitPromptOpen(false)}>
+                Laisse tomber
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
