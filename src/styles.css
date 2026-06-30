@@ -628,6 +628,7 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 0 0 2px #0c0c11;
   opacity: 0;
+  pointer-events: none;
   transform: translateX(-10px) scale(0.98);
   transform-origin: left center;
   transition: opacity 170ms ease, transform 170ms ease;
@@ -635,6 +636,14 @@ h1 {
 
 .task-swipe-shell.is-swiped .swipe-actions {
   opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+}
+
+.task-row-shell.is-swiped .swipe-actions,
+.objective-swipe-shell.is-swiped .swipe-actions {
+  opacity: 1;
+  pointer-events: auto;
   transform: translateX(0) scale(1);
 }
 
@@ -1086,6 +1095,15 @@ h1 {
   display: none;
 }
 
+.task-row-shell {
+  position: relative;
+  min-height: 71px;
+}
+
+.task-row-actions {
+  height: 71px;
+}
+
 .task-row {
   position: relative;
   isolation: isolate;
@@ -1102,6 +1120,8 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.03);
   box-shadow: 0 0 0 2px #0a0a0d;
   backdrop-filter: blur(16.5px);
+  transform: translateX(var(--task-swipe-x, 0));
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.22, 1), opacity 160ms ease;
 }
 
 .task-main {
@@ -1263,6 +1283,261 @@ h1 {
   width: 18px;
   height: 18px;
   accent-color: #75fe97;
+}
+
+.objectives-page {
+  overflow: hidden;
+}
+
+.objectives-page::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 382px;
+  left: 281px;
+  top: -222px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  filter: blur(59.55px);
+  transform: rotate(49.05deg);
+  pointer-events: none;
+}
+
+.objectives-content {
+  position: absolute;
+  inset: 0;
+  transition: filter 260ms ease, transform 260ms ease, opacity 260ms ease;
+}
+
+.objectives-content.is-blurred {
+  filter: blur(10px);
+  opacity: 0.52;
+  transform: scale(0.985);
+}
+
+.objectives-topbar {
+  position: absolute;
+  z-index: 3;
+  top: 88px;
+  left: 32px;
+  width: calc(100% - 64px);
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.objectives-title {
+  top: 163px;
+  left: 38px;
+}
+
+.objectives-divider {
+  top: 228px;
+  left: 38px;
+  right: 26px;
+}
+
+.objectives-list {
+  position: absolute;
+  top: 262px;
+  left: 38px;
+  right: 26px;
+  max-height: 536px;
+  display: grid;
+  gap: 14px;
+  overflow-y: auto;
+  padding-bottom: 34px;
+  scrollbar-width: none;
+}
+
+.objectives-list::-webkit-scrollbar {
+  display: none;
+}
+
+.objective-group {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.objective-swipe-shell {
+  position: relative;
+  width: 100%;
+  height: 71px;
+}
+
+.objective-actions {
+  height: 71px;
+}
+
+.objective-card,
+.subobjective-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 0 0 2px #0a0a0d;
+  backdrop-filter: blur(16.5px);
+  background: rgba(35, 36, 43, 0.18);
+  transform: translateX(var(--swipe-x, 0));
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.22, 1);
+}
+
+.objective-card {
+  width: 100%;
+  height: 71px;
+  padding: 12px 18px 12px 20px;
+  border-radius: 27px;
+}
+
+.subobjective-card {
+  width: 350px;
+  min-height: 58px;
+  padding: 12px 12px 12px 18px;
+  border-radius: 24px;
+}
+
+.objective-main {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  padding: 0;
+  color: #ffffff;
+  background: transparent;
+  text-align: left;
+}
+
+.objective-main span {
+  width: 148px;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-track {
+  position: relative;
+  width: 103px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #25252d;
+}
+
+.progress-track b {
+  position: absolute;
+  left: 0;
+  top: -2px;
+  height: 11px;
+  border-radius: 22px;
+  background: #75fe97;
+}
+
+.expand-button {
+  position: relative;
+  z-index: 3;
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border: 0.90625px solid rgba(255, 255, 255, 0.03);
+  border-radius: 31px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.expand-button svg {
+  transition: transform 190ms ease;
+}
+
+.expand-button.is-open svg {
+  transform: rotate(180deg);
+}
+
+.objective-light {
+  position: absolute;
+  z-index: 1;
+  width: 417px;
+  height: 93px;
+  left: -18px;
+  top: 58px;
+  border-radius: 200px;
+  background: rgba(var(--objective-glow), 0.14);
+  filter: blur(6.35px);
+  pointer-events: none;
+}
+
+.objective-children {
+  width: 350px;
+  display: grid;
+  gap: 10px;
+}
+
+.subobjective-group {
+  display: grid;
+  gap: 8px;
+}
+
+.mini-action {
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.mini-action.danger {
+  color: #ff8b8b;
+}
+
+.objective-task {
+  width: 314px;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.objective-task.is-complete {
+  opacity: 0.5;
+}
+
+.add-linked-task,
+.objective-add-row button {
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  background: #212228;
+  box-shadow: 0 0 0 2px #0c0c11;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.objective-add-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.objectives-composer {
+  min-height: 286px;
 }
 
 @media (max-width: 439px) {

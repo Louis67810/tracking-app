@@ -48,6 +48,31 @@ const checks = {
 
 await page.screenshot({ path: "work-page-verify.png", fullPage: true });
 
+await page.locator(".work-card").filter({ hasText: "Tes objectifs" }).click();
+await page.waitForURL("**/travail/objectifs");
+checks.objectives = {
+  title: await page.locator(".objectives-title").textContent(),
+  cards: await page.locator(".objective-card").count(),
+  progressBars: await page.locator(".progress-track").count(),
+  linkedTasks: await page.locator(".objective-task").count()
+};
+await page.locator(".calendar-add").click();
+await page.locator(".objectives-composer").waitFor({ state: "visible" });
+await page.locator(".objectives-composer .composer-field input").first().fill("Objectif test");
+await page.locator(".objectives-composer .color-swatch").nth(4).click();
+await page.locator(".objectives-composer .create-task-button").click();
+await page.locator(".objectives-composer").waitFor({ state: "detached" });
+await page.waitForTimeout(250);
+checks.objectives.afterCreate = {
+  cards: await page.locator(".objective-card").count(),
+  hasCreatedObjective: (await page.locator(".objective-card").evaluateAll((nodes) => nodes.map((node) => node.innerText))).some((text) =>
+    text.includes("Objectif test")
+  )
+};
+await page.screenshot({ path: "objectives-page-verify.png", fullPage: true });
+await page.locator(".calendar-back").click();
+await page.waitForURL("**/travail");
+
 await page.locator(".work-card").filter({ hasText: "Tes tâches" }).click();
 await page.waitForURL("**/travail/taches");
 checks.tasks = {

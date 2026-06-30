@@ -6,7 +6,7 @@ const mainScore = 90;
 const workLinks = [
   { label: "Calendrier", to: "/travail/calendrier" },
   { label: "Tes tâches", to: "/travail/taches" },
-  { label: "Tes objectifs" }
+  { label: "Tes objectifs", to: "/travail/objectifs" }
 ];
 
 export default function WorkPage() {

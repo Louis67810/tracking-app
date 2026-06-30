@@ -5,6 +5,7 @@ import AppShell from "./ui/AppShell.jsx";
 import WorkPage from "./pages/WorkPage.jsx";
 import WorkCalendarPage from "./pages/WorkCalendarPage.jsx";
 import WorkTasksPage from "./pages/WorkTasksPage.jsx";
+import WorkObjectivesPage from "./pages/WorkObjectivesPage.jsx";
 import EmptyPage from "./pages/EmptyPage.jsx";
 import ScanPage from "./pages/ScanPage.jsx";
 import { registerServiceWorker } from "./pwa.js";
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
       { path: "travail", element: <WorkPage /> },
       { path: "travail/calendrier", element: <WorkCalendarPage /> },
       { path: "travail/taches", element: <WorkTasksPage /> },
+      { path: "travail/objectifs", element: <WorkObjectivesPage /> },
       { path: "recap", element: <EmptyPage /> },
       { path: "scan", element: <ScanPage /> }
     ]

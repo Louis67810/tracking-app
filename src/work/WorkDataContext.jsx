@@ -18,6 +18,8 @@ const initialTasks = [
     duration: 1.75,
     completed: false,
     color: workColors[0],
+    objectiveId: "goal-1",
+    subObjectiveId: "sub-1",
     hasDate: true
   },
   {
@@ -28,6 +30,8 @@ const initialTasks = [
     duration: 1.75,
     completed: true,
     color: workColors[1],
+    objectiveId: "goal-1",
+    subObjectiveId: "sub-1",
     hasDate: true
   },
   {
@@ -38,6 +42,8 @@ const initialTasks = [
     duration: 1.75,
     completed: true,
     color: workColors[2],
+    objectiveId: "goal-1",
+    subObjectiveId: null,
     hasDate: true
   },
   {
@@ -48,7 +54,28 @@ const initialTasks = [
     duration: 1,
     completed: false,
     color: workColors[5],
+    objectiveId: null,
+    subObjectiveId: null,
     hasDate: false
+  }
+];
+
+const initialObjectives = [
+  {
+    id: "goal-1",
+    title: "Temps d'ecran moyen",
+    color: workColors[2],
+    expanded: true,
+    subObjectives: [
+      { id: "sub-1", title: "Routine du matin", expanded: true }
+    ]
+  },
+  {
+    id: "goal-2",
+    title: "Planifier la semaine",
+    color: workColors[3],
+    expanded: false,
+    subObjectives: []
   }
 ];
 
@@ -80,6 +107,7 @@ export function findWorkColor(value) {
 
 export function WorkDataProvider({ children }) {
   const [tasks, setTasks] = useState(initialTasks);
+  const [objectives, setObjectives] = useState(initialObjectives);
 
   function createTask(input) {
     const color = typeof input.color === "string" ? findWorkColor(input.color) : input.color ?? workColors[0];
@@ -141,9 +169,109 @@ export function WorkDataProvider({ children }) {
     });
   }
 
+  function createObjective(input) {
+    const objective = {
+      id: crypto.randomUUID?.() ?? `goal-${Date.now()}`,
+      title: input.title?.trim() || "Nouvel objectif",
+      color: typeof input.color === "string" ? findWorkColor(input.color) : input.color ?? workColors[0],
+      expanded: true,
+      subObjectives: []
+    };
+    setObjectives((current) => [...current, objective]);
+    return objective;
+  }
+
+  function updateObjective(objectiveId, patch) {
+    setObjectives((current) =>
+      current.map((objective) => {
+        if (objective.id !== objectiveId) return objective;
+        const color = patch.color
+          ? typeof patch.color === "string"
+            ? findWorkColor(patch.color)
+            : patch.color
+          : objective.color;
+        return { ...objective, ...patch, color };
+      })
+    );
+  }
+
+  function deleteObjective(objectiveId) {
+    setObjectives((current) => current.filter((objective) => objective.id !== objectiveId));
+    setTasks((current) =>
+      current.map((task) =>
+        task.objectiveId === objectiveId ? { ...task, objectiveId: null, subObjectiveId: null } : task
+      )
+    );
+  }
+
+  function createSubObjective(objectiveId, input) {
+    const subObjective = {
+      id: crypto.randomUUID?.() ?? `sub-${Date.now()}`,
+      title: input.title?.trim() || "Sous-objectif",
+      expanded: true
+    };
+    setObjectives((current) =>
+      current.map((objective) =>
+        objective.id === objectiveId
+          ? { ...objective, expanded: true, subObjectives: [...objective.subObjectives, subObjective] }
+          : objective
+      )
+    );
+    return subObjective;
+  }
+
+  function updateSubObjective(objectiveId, subObjectiveId, patch) {
+    setObjectives((current) =>
+      current.map((objective) =>
+        objective.id === objectiveId
+          ? {
+              ...objective,
+              subObjectives: objective.subObjectives.map((subObjective) =>
+                subObjective.id === subObjectiveId ? { ...subObjective, ...patch } : subObjective
+              )
+            }
+          : objective
+      )
+    );
+  }
+
+  function deleteSubObjective(objectiveId, subObjectiveId) {
+    setObjectives((current) =>
+      current.map((objective) =>
+        objective.id === objectiveId
+          ? { ...objective, subObjectives: objective.subObjectives.filter((subObjective) => subObjective.id !== subObjectiveId) }
+          : objective
+      )
+    );
+    setTasks((current) =>
+      current.map((task) => (task.subObjectiveId === subObjectiveId ? { ...task, subObjectiveId: null } : task))
+    );
+  }
+
+  function linkTaskToObjective(taskId, objectiveId, subObjectiveId = null) {
+    updateTask(taskId, { objectiveId, subObjectiveId });
+  }
+
   const value = useMemo(
-    () => ({ tasks, setTasks, createTask, updateTask, deleteTask, toggleTask, scheduleTask, colors: workColors }),
-    [tasks]
+    () => ({
+      tasks,
+      objectives,
+      setTasks,
+      createTask,
+      updateTask,
+      deleteTask,
+      toggleTask,
+      scheduleTask,
+      createObjective,
+      updateObjective,
+      deleteObjective,
+      createSubObjective,
+      updateSubObjective,
+      deleteSubObjective,
+      linkTaskToObjective,
+      colors: workColors
+    }),
+    [tasks, objectives]
   );
 
   return <WorkDataContext.Provider value={value}>{children}</WorkDataContext.Provider>;
