@@ -264,39 +264,41 @@ export default function FocusPage() {
 
       {isRunning && (
         <div className="focus-session-overlay" role="dialog" aria-label="Session focus en cours">
-          <button className="focus-session-close" type="button" onClick={() => setIsExitPromptOpen(true)} aria-label="Quitter la session">
-            <XMarkIcon width={28} height={28} />
-          </button>
-          <div className="focus-session-clock" aria-live="polite">
-            {displayValue}
-          </div>
-          <button className="focus-stop-button" type="button" onClick={() => setIsExitPromptOpen(true)}>
-            Stopper
-          </button>
-
-          {isExitPromptOpen && (
-            <div className="early-exit-sheet" role="alertdialog" aria-label="Partir tôt">
-              <div className="early-exit-handle" aria-hidden="true" />
-              <div className="early-exit-icon" aria-hidden="true">
-                <XMarkIcon width={32} height={32} />
-              </div>
-              <h2>Partir tôt ?</h2>
-              <p>N'abandonne pas, tu as commencé pour une raison.</p>
-              <button
-                className="early-exit-hold"
-                type="button"
-                onPointerDown={startExitHold}
-                onPointerUp={cancelExitHold}
-                onPointerCancel={cancelExitHold}
-                onPointerLeave={cancelExitHold}
-              >
-                Maintiens pour partir
-              </button>
-              <button className="early-exit-cancel" type="button" onClick={() => setIsExitPromptOpen(false)}>
-                Laisse tomber
-              </button>
+          <div className="focus-session-panel">
+            <button className="focus-session-close" type="button" onClick={() => setIsExitPromptOpen(true)} aria-label="Quitter la session">
+              <XMarkIcon width={28} height={28} />
+            </button>
+            <div className="focus-session-clock" aria-live="polite">
+              {displayValue}
             </div>
-          )}
+            <button className="focus-stop-button" type="button" onClick={() => setIsExitPromptOpen(true)}>
+              Stopper
+            </button>
+
+            {isExitPromptOpen && (
+              <div className="early-exit-sheet" role="alertdialog" aria-label="Partir tôt">
+                <div className="early-exit-handle" aria-hidden="true" />
+                <div className="early-exit-icon" aria-hidden="true">
+                  <XMarkIcon width={32} height={32} />
+                </div>
+                <h2>Partir tôt ?</h2>
+                <p>N'abandonne pas, tu as commencé pour une raison.</p>
+                <button
+                  className="early-exit-hold"
+                  type="button"
+                  onPointerDown={startExitHold}
+                  onPointerUp={cancelExitHold}
+                  onPointerCancel={cancelExitHold}
+                  onPointerLeave={cancelExitHold}
+                >
+                  Maintiens pour partir
+                </button>
+                <button className="early-exit-cancel" type="button" onClick={() => setIsExitPromptOpen(false)}>
+                  Laisse tomber
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </section>
