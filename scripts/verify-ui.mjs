@@ -48,6 +48,35 @@ const checks = {
 
 await page.screenshot({ path: "work-page-verify.png", fullPage: true });
 
+await page.locator('a[href="/focus"]').click();
+await page.waitForURL("**/focus");
+checks.focus = {
+  title: await page.locator(".focus-title").textContent(),
+  initialDuration: await page.locator(".focus-time-value").textContent(),
+  focusNavActive: await page.locator('a[href="/focus"]').evaluate((node) => node.classList.contains("active")),
+  playlistCount: await page.locator(".focus-playlist-card").count()
+};
+await page.locator(".focus-adjust-right").click();
+checks.focus.afterPlus = await page.locator(".focus-time-value").textContent();
+await page.locator(".focus-adjust-left").click();
+checks.focus.afterMinus = await page.locator(".focus-time-value").textContent();
+await page.locator(".focus-primary").click();
+await page.waitForTimeout(1100);
+checks.focus.timerRunning = {
+  value: await page.locator(".focus-time-value").textContent(),
+  label: await page.locator(".focus-primary span").textContent()
+};
+await page.locator(".focus-secondary").click();
+await page.waitForTimeout(1100);
+checks.focus.freeRunning = {
+  value: await page.locator(".focus-time-value").textContent(),
+  label: await page.locator(".focus-secondary span").textContent()
+};
+await page.locator(".focus-playlist-card").first().click();
+checks.focus.playlistActive = await page.locator(".focus-playlist-card.is-active").count();
+await page.screenshot({ path: "focus-page-verify.png", fullPage: true });
+await page.goto(appUrl, { waitUntil: "networkidle" });
+
 await page.locator(".work-card").filter({ hasText: "Tes objectifs" }).click();
 await page.waitForURL("**/travail/objectifs");
 checks.objectives = {
