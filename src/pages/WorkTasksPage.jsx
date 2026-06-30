@@ -8,52 +8,13 @@ import {
 } from "@heroicons/react/24/solid";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const taskColors = [
-  { name: "Rouge", value: "#FF8B8D", glow: "255, 139, 141" },
-  { name: "Violet", value: "#A48BFF", glow: "164, 139, 255" },
-  { name: "Vert", value: "#66EB6A", glow: "102, 235, 106" },
-  { name: "Menthe", value: "#8BFFE8", glow: "139, 255, 232" }
-];
-
-const initialTasks = [
-  {
-    id: "task-1",
-    title: "Temps d'ecran moyen",
-    dayOffset: 0,
-    time: "10:00",
-    completed: false,
-    color: taskColors[0],
-    hasDate: true
-  },
-  {
-    id: "task-2",
-    title: "Temps d'ecran moyen",
-    dayOffset: 0,
-    time: "10:30",
-    completed: true,
-    color: taskColors[1],
-    hasDate: true
-  },
-  {
-    id: "task-3",
-    title: "Temps d'ecran moyen",
-    dayOffset: 1,
-    time: "14:00",
-    completed: true,
-    color: taskColors[2],
-    hasDate: true
-  },
-  {
-    id: "task-4",
-    title: "Temps d'ecran moyen",
-    dayOffset: null,
-    time: "",
-    completed: false,
-    color: taskColors[3],
-    hasDate: false
-  }
-];
+import {
+  durationFromParts,
+  startToTime,
+  timeToStart,
+  useWorkData,
+  workColors
+} from "../work/WorkDataContext.jsx";
 
 function formatDay(offset) {
   if (offset === 0) return "Aujourd'hui";
@@ -77,26 +38,29 @@ function formatTaskDate(task) {
   const date = new Date();
   date.setDate(date.getDate() + task.dayOffset);
   const day = formatter.format(date);
-  return task.time ? `${day} ${task.time}` : day;
+  const time = startToTime(task.start);
+  return time ? `${day} ${time}` : day;
 }
 
 function sortTasks(a, b) {
   if (a.completed !== b.completed) return Number(a.completed) - Number(b.completed);
   if (a.hasDate !== b.hasDate) return Number(b.hasDate) - Number(a.hasDate);
-  return (a.time || "99:99").localeCompare(b.time || "99:99");
+  return (startToTime(a.start) || "99:99").localeCompare(startToTime(b.start) || "99:99");
 }
 
 export default function WorkTasksPage() {
   const navigate = useNavigate();
+  const { tasks, createTask, toggleTask } = useWorkData();
   const [dayOffset, setDayOffset] = useState(0);
-  const [tasks, setTasks] = useState(initialTasks);
   const [isComposerOpen, setComposerOpen] = useState(false);
   const [draft, setDraft] = useState({
     title: "",
     hasDate: true,
     dayOffset: 0,
     time: "10:00",
-    color: taskColors[0].value
+    durationHours: "1",
+    durationMinutes: "0",
+    color: workColors[0].value
   });
 
   const visibleTasks = useMemo(
@@ -108,42 +72,20 @@ export default function WorkTasksPage() {
     [tasks, dayOffset]
   );
 
-  function createTask(event) {
+  function submitTask(event) {
     event.preventDefault();
-    const color = taskColors.find((option) => option.value === draft.color) ?? taskColors[0];
-    const day = draft.hasDate ? Number(draft.dayOffset) : null;
-
-    setTasks((current) => [
-      ...current,
-      {
-        id: crypto.randomUUID?.() ?? `task-${Date.now()}`,
-        title: draft.title.trim() || "Nouvelle tache",
-        hasDate: draft.hasDate,
-        dayOffset: day,
-        time: draft.hasDate ? draft.time : "",
-        completed: false,
-        color
-      }
-    ]);
-    if (draft.hasDate) setDayOffset(day);
+    const duration = durationFromParts(draft.durationHours, draft.durationMinutes);
+    const task = createTask({
+      title: draft.title,
+      hasDate: draft.hasDate,
+      dayOffset: draft.dayOffset,
+      start: draft.hasDate ? timeToStart(draft.time) : null,
+      duration,
+      color: draft.color
+    });
+    if (task.hasDate) setDayOffset(task.dayOffset);
     setDraft((current) => ({ ...current, title: "" }));
     setComposerOpen(false);
-  }
-
-  function toggleTask(taskId) {
-    setTasks((current) =>
-      current.map((task) => (task.id === taskId ? { ...task, completed: !task.completed } : task))
-    );
-  }
-
-  function moveTaskDay(taskId, direction) {
-    setTasks((current) =>
-      current.map((task) => {
-        if (task.id !== taskId) return task;
-        const nextDay = task.hasDate ? (task.dayOffset ?? dayOffset) + direction : dayOffset + direction;
-        return { ...task, hasDate: true, dayOffset: nextDay };
-      })
-    );
   }
 
   return (
@@ -154,11 +96,11 @@ export default function WorkTasksPage() {
             <ArrowLeftIcon width={24} height={24} />
           </button>
 
-          <div className="tasks-day-switcher" aria-label="Navigation des jours">
+          <div className="day-switcher" aria-label="Navigation des jours">
             <button type="button" aria-label="Jour precedent" onClick={() => setDayOffset((value) => value - 1)}>
               <ChevronLeftIcon width={24} height={24} />
             </button>
-            <div className="tasks-day-pill">{formatDay(dayOffset)}</div>
+            <div className="day-pill">{formatDay(dayOffset)}</div>
             <button type="button" aria-label="Jour suivant" onClick={() => setDayOffset((value) => value + 1)}>
               <ChevronRightIcon width={24} height={24} />
             </button>
@@ -192,13 +134,7 @@ export default function WorkTasksPage() {
               </div>
 
               <div className="task-actions-pill" style={{ "--task-row-glow": task.color.glow }}>
-                <button type="button" aria-label="Jour precedent" onClick={() => moveTaskDay(task.id, -1)}>
-                  <ChevronLeftIcon width={14} height={14} />
-                </button>
-                <span>{task.hasDate ? "Date" : "Sans date"}</span>
-                <button type="button" aria-label="Jour suivant" onClick={() => moveTaskDay(task.id, 1)}>
-                  <ChevronRightIcon width={14} height={14} />
-                </button>
+                <span>Objectif</span>
               </div>
             </article>
           ))}
@@ -207,7 +143,7 @@ export default function WorkTasksPage() {
 
       {isComposerOpen && (
         <div className="task-composer-layer" role="presentation">
-          <form className="task-composer tasks-composer" onSubmit={createTask}>
+          <form className="task-composer tasks-composer" onSubmit={submitTask}>
             <button className="composer-close" type="button" aria-label="Fermer" onClick={() => setComposerOpen(false)}>
               <XMarkIcon width={20} height={20} />
             </button>
@@ -250,10 +186,20 @@ export default function WorkTasksPage() {
                     onChange={(event) => setDraft({ ...draft, time: event.target.value })}
                   />
                 </label>
+
+                <label className="composer-field">
+                  <span>Heures</span>
+                  <input type="number" min="0" max="24" value={draft.durationHours} onChange={(event) => setDraft({ ...draft, durationHours: event.target.value })} />
+                </label>
+
+                <label className="composer-field">
+                  <span>Minutes</span>
+                  <input type="number" min="0" max="59" value={draft.durationMinutes} onChange={(event) => setDraft({ ...draft, durationMinutes: event.target.value })} />
+                </label>
               </div>
 
               <div className="color-picker" aria-label="Couleur">
-                {taskColors.map((option) => (
+                {workColors.map((option) => (
                   <button
                     className={draft.color === option.value ? "color-swatch is-selected" : "color-swatch"}
                     type="button"

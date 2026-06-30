@@ -1140,6 +1140,10 @@ h1 {
     0 0 1px rgba(0, 0, 0, 0.29);
 }
 
+.task-row.is-complete {
+  opacity: 0.5;
+}
+
 .task-text {
   min-width: 0;
   display: grid;
@@ -1162,7 +1166,7 @@ h1 {
   max-width: 154px;
   overflow: hidden;
   color: #626278;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.35;
   letter-spacing: 0;
@@ -1177,7 +1181,7 @@ h1 {
   width: 92px;
   height: 34px;
   display: grid;
-  grid-template-columns: 20px 1fr 20px;
+  grid-template-columns: 1fr;
   align-items: center;
   justify-items: center;
   overflow: hidden;
@@ -1202,24 +1206,39 @@ h1 {
   filter: blur(6.35px);
 }
 
-.task-actions-pill button {
-  width: 20px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  padding: 0;
-  color: rgba(255, 255, 255, 0.72);
-  background: transparent;
-}
-
 .task-actions-pill span {
   overflow: hidden;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.composer-mode {
+  height: 42px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.composer-mode button {
+  border: 0;
+  border-radius: 11px;
+  color: rgba(255, 255, 255, 0.56);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.composer-mode button.is-selected {
+  color: rgba(255, 255, 255, 0.92);
+  background: #23242b;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .tasks-composer {

@@ -7,6 +7,15 @@ import {
 } from "@heroicons/react/24/solid";
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  clampTaskStart,
+  durationFromParts,
+  findWorkColor,
+  startToTime,
+  timeToStart,
+  useWorkData,
+  workColors
+} from "../work/WorkDataContext.jsx";
 
 const START_HOUR = 0;
 const END_HOUR = 24;
@@ -16,19 +25,6 @@ const SWIPE_THRESHOLD = 72;
 const QUICK_MENU_WIDTH = 176;
 const QUICK_MENU_HEIGHT = 240;
 const QUICK_MENU_GAP = 8;
-
-const colorOptions = [
-  { name: "Bleu", value: "#8BE2FF", glow: "139, 226, 255" },
-  { name: "Orange", value: "#FFC98B", glow: "255, 201, 139" },
-  { name: "Rouge", value: "#FF8B8B", glow: "255, 139, 139" },
-  { name: "Vert", value: "#9BE7C4", glow: "155, 231, 196" }
-];
-
-const initialTasks = [
-  { id: "screen-1", title: "Tâche", dayOffset: 0, start: 6.5, duration: 1.75, color: colorOptions[0] },
-  { id: "screen-2", title: "Tâche", dayOffset: 0, start: 8.5, duration: 1.75, color: colorOptions[1] },
-  { id: "screen-3", title: "Tâche", dayOffset: 0, start: 10.5, duration: 1.75, color: colorOptions[2] }
-];
 
 function formatDate(offset) {
   if (offset === 0) return "Aujourd'hui";
@@ -41,21 +37,8 @@ function formatDate(offset) {
   return formatter.format(date).replace(".", "");
 }
 
-function fromTimeValue(value) {
-  const [hour, minutes] = value.split(":").map(Number);
-  return hour + minutes / 60;
-}
-
-function clampTaskStart(start, duration) {
-  return Math.max(START_HOUR, Math.min(END_HOUR - duration, start));
-}
-
 function nearestQuarter(value) {
   return Math.round(value * 4) / 4;
-}
-
-function durationFromParts(hours, minutes) {
-  return Math.max(1 / 60, Number(hours || 0) + Number(minutes || 0) / 60);
 }
 
 function getQuickMenuAnchor(taskRect, boardRect) {
@@ -75,16 +58,18 @@ function getQuickMenuAnchor(taskRect, boardRect) {
 
 export default function WorkCalendarPage() {
   const navigate = useNavigate();
+  const { tasks, setTasks, createTask, updateTask, deleteTask, scheduleTask } = useWorkData();
   const [dayOffset, setDayOffset] = useState(0);
-  const [tasks, setTasks] = useState(initialTasks);
   const [isComposerOpen, setComposerOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState(null);
   const [openSwipeTaskId, setOpenSwipeTaskId] = useState(null);
   const [swipePreview, setSwipePreview] = useState(null);
   const [quickMenu, setQuickMenu] = useState(null);
   const [draft, setDraft] = useState({
+    mode: "create",
+    taskId: "",
     title: "",
-    color: colorOptions[0].value,
+    color: workColors[0].value,
     dayOffset: 0,
     start: "12:30",
     durationHours: "1",
@@ -95,28 +80,39 @@ export default function WorkCalendarPage() {
   const longPressTimer = useRef(null);
 
   const visibleTasks = useMemo(
-    () => tasks.filter((task) => task.dayOffset === dayOffset).sort((a, b) => a.start - b.start),
+    () =>
+      tasks
+        .filter((task) => task.hasDate && task.dayOffset === dayOffset && task.start !== null)
+        .slice()
+        .sort((a, b) => a.start - b.start),
     [tasks, dayOffset]
   );
 
-  function createTask(event) {
-    event.preventDefault();
-    const color = colorOptions.find((option) => option.value === draft.color) ?? colorOptions[0];
-    const duration = durationFromParts(draft.durationHours, draft.durationMinutes);
-    const start = clampTaskStart(fromTimeValue(draft.start), duration);
+  const assignableTasks = useMemo(
+    () => tasks.slice().sort((a, b) => a.title.localeCompare(b.title)),
+    [tasks]
+  );
 
-    setTasks((current) => [
-      ...current,
-      {
-        id: crypto.randomUUID?.() ?? `task-${Date.now()}`,
-        title: draft.title.trim() || "Tâche",
-        dayOffset: Number(draft.dayOffset),
+  function submitCalendarTask(event) {
+    event.preventDefault();
+    const duration = durationFromParts(draft.durationHours, draft.durationMinutes);
+    const start = clampTaskStart(timeToStart(draft.start), duration);
+    const nextDay = Number(draft.dayOffset);
+
+    if (draft.mode === "assign" && draft.taskId) {
+      scheduleTask(draft.taskId, { dayOffset: nextDay, start, duration });
+    } else {
+      createTask({
+        title: draft.title,
+        hasDate: true,
+        dayOffset: nextDay,
         start,
         duration,
-        color
-      }
-    ]);
-    setDayOffset(Number(draft.dayOffset));
+        color: draft.color
+      });
+    }
+
+    setDayOffset(nextDay);
     setComposerOpen(false);
     setDraft((current) => ({ ...current, title: "" }));
   }
@@ -151,41 +147,30 @@ export default function WorkCalendarPage() {
 
   function updateQuickTask(patch) {
     if (!quickMenu) return;
-    setTasks((current) =>
-      current.map((task) => {
-        if (task.id !== quickMenu.id) return task;
-        const color = patch.color
-          ? colorOptions.find((option) => option.value === patch.color) ?? task.color
-          : task.color;
-        const nextDuration =
-          patch.durationHours !== undefined || patch.durationMinutes !== undefined
-            ? durationFromParts(
-                patch.durationHours ?? quickMenu.durationHours,
-                patch.durationMinutes ?? quickMenu.durationMinutes
-              )
-            : task.duration;
-        return {
-          ...task,
-          title: patch.title ?? task.title,
-          color,
-          duration: nextDuration,
-          start: clampTaskStart(task.start, nextDuration)
-        };
-      })
-    );
+    const currentTask = tasks.find((task) => task.id === quickMenu.id);
+    if (!currentTask) return;
+
+    const nextDuration =
+      patch.durationHours !== undefined || patch.durationMinutes !== undefined
+        ? durationFromParts(
+            patch.durationHours ?? quickMenu.durationHours,
+            patch.durationMinutes ?? quickMenu.durationMinutes
+          )
+        : currentTask.duration;
+
+    updateTask(quickMenu.id, {
+      title: patch.title ?? currentTask.title,
+      color: patch.color ? findWorkColor(patch.color) : currentTask.color,
+      duration: nextDuration,
+      start: clampTaskStart(currentTask.start, nextDuration)
+    });
     setQuickMenu((current) => (current ? { ...current, ...patch } : current));
   }
 
   function deleteQuickTask() {
     if (!quickMenu) return;
     deleteTask(quickMenu.id);
-  }
-
-  function deleteTask(taskId) {
-    setTasks((current) => current.filter((task) => task.id !== taskId));
     setQuickMenu(null);
-    setOpenSwipeTaskId(null);
-    setSwipePreview(null);
   }
 
   function openQuickMenuFromButton(task, event) {
@@ -193,6 +178,13 @@ export default function WorkCalendarPage() {
     const taskRect = event.currentTarget.closest(".task-swipe-shell")?.getBoundingClientRect();
     if (!boardRect || !taskRect) return;
     openQuickMenu(task, getQuickMenuAnchor(taskRect, boardRect));
+  }
+
+  function deleteCalendarTask(taskId) {
+    deleteTask(taskId);
+    setQuickMenu(null);
+    setOpenSwipeTaskId(null);
+    setSwipePreview(null);
   }
 
   function startSwipe(event, task) {
@@ -268,7 +260,7 @@ export default function WorkCalendarPage() {
     setTasks((current) => {
       const draggedTask = current.find((task) => task.id === drag.id);
       const crossedTask = current
-        .filter((task) => task.id !== drag.id && task.dayOffset === draggedTask?.dayOffset)
+        .filter((task) => task.id !== drag.id && task.hasDate && task.dayOffset === draggedTask?.dayOffset)
         .find((task) => {
           const wasAbove = drag.initialStart < task.start;
           const wasBelow = drag.initialStart > task.start;
@@ -287,7 +279,7 @@ export default function WorkCalendarPage() {
       }
       return moved
         .slice()
-        .sort((a, b) => (a.dayOffset === b.dayOffset ? a.start - b.start : a.dayOffset - b.dayOffset));
+        .sort((a, b) => (a.dayOffset === b.dayOffset ? (a.start ?? 0) - (b.start ?? 0) : (a.dayOffset ?? 0) - (b.dayOffset ?? 0)));
     });
   }
 
@@ -311,7 +303,7 @@ export default function WorkCalendarPage() {
           </button>
 
           <div className="day-switcher" aria-label="Navigation des jours">
-            <button type="button" aria-label="Jour précédent" onClick={() => setDayOffset((value) => value - 1)}>
+            <button type="button" aria-label="Jour precedent" onClick={() => setDayOffset((value) => value - 1)}>
               <ChevronLeftIcon width={24} height={24} />
             </button>
             <div className="day-pill">{formatDate(dayOffset)}</div>
@@ -320,7 +312,7 @@ export default function WorkCalendarPage() {
             </button>
           </div>
 
-          <button className="calendar-add" type="button" aria-label="Créer une tâche" onClick={() => setComposerOpen(true)}>
+          <button className="calendar-add" type="button" aria-label="Creer une tache" onClick={() => setComposerOpen(true)}>
             <PlusIcon width={24} height={24} />
           </button>
         </header>
@@ -358,7 +350,7 @@ export default function WorkCalendarPage() {
                       <button type="button" onClick={(event) => openQuickMenuFromButton(task, event)}>
                         Modifier
                       </button>
-                      <button type="button" onClick={() => deleteTask(task.id)}>
+                      <button type="button" onClick={() => deleteCalendarTask(task.id)}>
                         Supprimer
                       </button>
                     </div>
@@ -388,7 +380,7 @@ export default function WorkCalendarPage() {
                       <button
                         className="task-grip"
                         type="button"
-                        aria-label="Déplacer la tâche"
+                        aria-label="Deplacer la tache"
                         onPointerDown={(event) => startDrag(event, task)}
                         onPointerMove={moveDrag}
                         onPointerUp={endDrag}
@@ -423,7 +415,7 @@ export default function WorkCalendarPage() {
               </label>
 
               <div className="quick-color-row">
-                {colorOptions.map((option) => (
+                {workColors.map((option) => (
                   <button
                     className={quickMenu.color === option.value ? "color-swatch is-selected" : "color-swatch"}
                     type="button"
@@ -471,16 +463,46 @@ export default function WorkCalendarPage() {
 
       {isComposerOpen && (
         <div className="task-composer-layer" role="presentation">
-          <form className="task-composer" onSubmit={createTask}>
+          <form className="task-composer" onSubmit={submitCalendarTask}>
             <button className="composer-close" type="button" aria-label="Fermer" onClick={() => setComposerOpen(false)}>
               <XMarkIcon width={20} height={20} />
             </button>
 
             <div className="composer-fields">
-              <label className="composer-field">
-                <span>Nom</span>
-                <input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Tâche" />
-              </label>
+              <div className="composer-mode">
+                <button
+                  className={draft.mode === "create" ? "is-selected" : ""}
+                  type="button"
+                  onClick={() => setDraft({ ...draft, mode: "create" })}
+                >
+                  Creer
+                </button>
+                <button
+                  className={draft.mode === "assign" ? "is-selected" : ""}
+                  type="button"
+                  onClick={() => setDraft({ ...draft, mode: "assign", taskId: assignableTasks[0]?.id ?? "" })}
+                >
+                  Assigner
+                </button>
+              </div>
+
+              {draft.mode === "assign" ? (
+                <label className="composer-field">
+                  <span>Tache</span>
+                  <select value={draft.taskId} onChange={(event) => setDraft({ ...draft, taskId: event.target.value })}>
+                    {assignableTasks.map((task) => (
+                      <option value={task.id} key={task.id}>
+                        {task.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <label className="composer-field">
+                  <span>Nom</span>
+                  <input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Tache" />
+                </label>
+              )}
 
               <div className="composer-row">
                 <label className="composer-field">
@@ -508,21 +530,25 @@ export default function WorkCalendarPage() {
                 </label>
               </div>
 
-              <div className="color-picker" aria-label="Couleur">
-                {colorOptions.map((option) => (
-                  <button
-                    className={draft.color === option.value ? "color-swatch is-selected" : "color-swatch"}
-                    type="button"
-                    key={option.value}
-                    aria-label={option.name}
-                    style={{ background: option.value }}
-                    onClick={() => setDraft({ ...draft, color: option.value })}
-                  />
-                ))}
-              </div>
+              {draft.mode === "create" && (
+                <div className="color-picker" aria-label="Couleur">
+                  {workColors.map((option) => (
+                    <button
+                      className={draft.color === option.value ? "color-swatch is-selected" : "color-swatch"}
+                      type="button"
+                      key={option.value}
+                      aria-label={option.name}
+                      style={{ background: option.value }}
+                      onClick={() => setDraft({ ...draft, color: option.value })}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
-            <button className="create-task-button" type="submit">Créer la tâche</button>
+            <button className="create-task-button" type="submit">
+              {draft.mode === "assign" ? "Assigner la tâche" : "Créer la tâche"}
+            </button>
           </form>
         </div>
       )}

@@ -52,9 +52,11 @@ await page.locator(".work-card").filter({ hasText: "Tes tâches" }).click();
 await page.waitForURL("**/travail/taches");
 checks.tasks = {
   title: await page.locator(".tasks-title").textContent(),
-  day: await page.locator(".tasks-day-pill").textContent(),
+  day: await page.locator(".tasks-page .day-pill").textContent(),
   rowCount: await page.locator(".task-row").count(),
-  workNavActive: await page.locator('a[href="/travail"]').evaluate((node) => node.classList.contains("active"))
+  workNavActive: await page.locator('a[href="/travail"]').evaluate((node) => node.classList.contains("active")),
+  objectiveLabels: await page.locator(".task-actions-pill").evaluateAll((nodes) => nodes.map((node) => node.innerText.trim())),
+  objectiveButtonCount: await page.locator(".task-actions-pill button").count()
 };
 
 await page.locator(".calendar-add").click();
@@ -73,19 +75,9 @@ checks.tasks.afterCreate = {
 
 const createdTaskRow = page.locator(".task-row").filter({ hasText: "Test tâche" }).first();
 await createdTaskRow.locator(".task-check").click();
-checks.tasks.afterCheck = await createdTaskRow.evaluate((node) => node.classList.contains("is-complete"));
-await createdTaskRow.locator(".task-actions-pill button").nth(1).click();
-await page.waitForTimeout(150);
-checks.tasks.afterMoveDay = {
-  todayCount: await page.locator(".task-row").count()
-};
-await page.locator(".tasks-day-switcher button").nth(1).click();
-await page.waitForTimeout(150);
-checks.tasks.afterNextDay = {
-  day: await page.locator(".tasks-day-pill").textContent(),
-  hasMovedTask: (await page.locator(".task-row").evaluateAll((nodes) => nodes.map((node) => node.innerText))).some((text) =>
-    text.includes("Test tâche")
-  )
+checks.tasks.afterCheck = {
+  completed: await createdTaskRow.evaluate((node) => node.classList.contains("is-complete")),
+  opacity: await createdTaskRow.evaluate((node) => getComputedStyle(node).opacity)
 };
 await page.screenshot({ path: "tasks-page-verify.png", fullPage: true });
 
@@ -98,7 +90,10 @@ checks.calendar = {
   day: await page.locator(".day-pill").textContent(),
   taskCount: await page.locator(".calendar-task").count(),
   freeCount: await page.locator(".free-block").count(),
-  workNavActive: await page.locator('a[href="/travail"]').evaluate((node) => node.classList.contains("active"))
+  workNavActive: await page.locator('a[href="/travail"]').evaluate((node) => node.classList.contains("active")),
+  hasTaskFromTasks: (await page.locator(".calendar-task").evaluateAll((nodes) => nodes.map((node) => node.innerText))).some((text) =>
+    text.includes("Test tâche")
+  )
 };
 
 const firstTaskForSwipe = page.locator(".calendar-task").first();
