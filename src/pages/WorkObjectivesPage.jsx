@@ -52,6 +52,7 @@ export default function WorkObjectivesPage() {
   const swipeRef = useRef(null);
   const screenPressTimer = useRef(null);
   const screenPressPoint = useRef(null);
+  const justActivatedAddMode = useRef(false);
 
   const objectiveViews = useMemo(
     () =>
@@ -134,6 +135,7 @@ export default function WorkObjectivesPage() {
     screenPressTimer.current = window.setTimeout(() => {
       setAddMode(true);
       setSelectedTarget(null);
+      justActivatedAddMode.current = true;
     }, 2000);
   }
 
@@ -152,6 +154,10 @@ export default function WorkObjectivesPage() {
 
   function closeAddMode(event) {
     if (!addMode) return;
+    if (justActivatedAddMode.current) {
+      justActivatedAddMode.current = false;
+      return;
+    }
     if (
       event.target.closest(
         ".objective-card, .subobjective-card, .objective-task, .objective-add-row, .add-linked-task, .task-composer-layer, .calendar-add"
