@@ -50,8 +50,8 @@ export default function WorkObjectivesPage() {
   const [selectedTarget, setSelectedTarget] = useState(null);
   const [swipe, setSwipe] = useState({ type: null, id: null, x: 0, openId: null });
   const swipeRef = useRef(null);
-  const plusTimer = useRef(null);
-  const longPressTriggered = useRef(false);
+  const screenPressTimer = useRef(null);
+  const screenPressPoint = useRef(null);
 
   const objectiveViews = useMemo(
     () =>
@@ -127,26 +127,40 @@ export default function WorkObjectivesPage() {
     setSwipe({ type: null, id: null, x: 0, openId: null });
   }
 
-  function startPlusPress() {
-    longPressTriggered.current = false;
-    window.clearTimeout(plusTimer.current);
-    plusTimer.current = window.setTimeout(() => {
-      longPressTriggered.current = true;
-      setAddMode((value) => !value);
+  function startScreenPress(event) {
+    if (composer) return;
+    screenPressPoint.current = { x: event.clientX, y: event.clientY };
+    window.clearTimeout(screenPressTimer.current);
+    screenPressTimer.current = window.setTimeout(() => {
+      setAddMode(true);
       setSelectedTarget(null);
-    }, 520);
+    }, 2000);
   }
 
-  function endPlusPress() {
-    window.clearTimeout(plusTimer.current);
+  function moveScreenPress(event) {
+    const point = screenPressPoint.current;
+    if (!point) return;
+    if (Math.abs(event.clientX - point.x) > 10 || Math.abs(event.clientY - point.y) > 10) {
+      window.clearTimeout(screenPressTimer.current);
+    }
   }
 
-  function clickPlus() {
-    if (longPressTriggered.current) {
-      longPressTriggered.current = false;
+  function endScreenPress() {
+    window.clearTimeout(screenPressTimer.current);
+    screenPressPoint.current = null;
+  }
+
+  function closeAddMode(event) {
+    if (!addMode) return;
+    if (
+      event.target.closest(
+        ".objective-card, .subobjective-card, .objective-task, .objective-add-row, .add-linked-task, .task-composer-layer, .calendar-add"
+      )
+    ) {
       return;
     }
-    openComposer("objective");
+    setAddMode(false);
+    setSelectedTarget(null);
   }
 
   function startSwipe(event, type, id) {
@@ -190,21 +204,21 @@ export default function WorkObjectivesPage() {
   }
 
   return (
-    <section className="objectives-page page-surface" onPointerDown={() => swipe.openId && setSwipe({ type: null, id: null, x: 0, openId: null })}>
+    <section
+      className={addMode ? "objectives-page page-surface is-jiggling" : "objectives-page page-surface"}
+      onPointerDownCapture={startScreenPress}
+      onPointerMoveCapture={moveScreenPress}
+      onPointerUpCapture={endScreenPress}
+      onPointerCancelCapture={endScreenPress}
+      onClick={closeAddMode}
+      onPointerDown={() => swipe.openId && setSwipe({ type: null, id: null, x: 0, openId: null })}
+    >
       <div className={composer ? "objectives-content is-blurred" : "objectives-content"}>
         <header className="objectives-topbar">
           <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/travail")}>
             <ArrowLeftIcon width={24} height={24} />
           </button>
-          <button
-            className={addMode ? "calendar-add is-add-mode" : "calendar-add"}
-            type="button"
-            aria-label="Creer un objectif"
-            onPointerDown={startPlusPress}
-            onPointerUp={endPlusPress}
-            onPointerCancel={endPlusPress}
-            onClick={clickPlus}
-          >
+          <button className="calendar-add" type="button" aria-label="Creer un objectif" onClick={() => openComposer("objective")}>
             <PlusIcon width={24} height={24} />
           </button>
         </header>
