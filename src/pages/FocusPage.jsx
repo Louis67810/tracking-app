@@ -1,4 +1,4 @@
-import { MinusIcon, PlayIcon, PlusIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { CheckIcon, ChevronDownIcon, MinusIcon, PlayIcon, PlusIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ScoreRing from "../ui/ScoreRing.jsx";
 
@@ -49,10 +49,13 @@ export default function FocusPage() {
   const [activePlaylist, setActivePlaylist] = useState(null);
   const [isExitPromptOpen, setIsExitPromptOpen] = useState(false);
   const [isExitHolding, setIsExitHolding] = useState(false);
+  const [isExitValidated, setIsExitValidated] = useState(false);
+  const [isSessionSoundsOpen, setIsSessionSoundsOpen] = useState(false);
   const pageRef = useRef(null);
   const audioRef = useRef(null);
   const ambientRef = useRef(null);
   const exitHoldRef = useRef(null);
+  const exitCompleteRef = useRef(null);
 
   useEffect(() => {
     if (mode === "timer" && !isRunning) {
@@ -90,6 +93,9 @@ export default function FocusPage() {
     () => () => {
       if (exitHoldRef.current) {
         window.clearTimeout(exitHoldRef.current);
+      }
+      if (exitCompleteRef.current) {
+        window.clearTimeout(exitCompleteRef.current);
       }
     },
     []
@@ -169,10 +175,16 @@ export default function FocusPage() {
       window.clearTimeout(exitHoldRef.current);
       exitHoldRef.current = null;
     }
+    if (exitCompleteRef.current) {
+      window.clearTimeout(exitCompleteRef.current);
+      exitCompleteRef.current = null;
+    }
 
     setIsRunning(false);
     setIsExitPromptOpen(false);
     setIsExitHolding(false);
+    setIsExitValidated(false);
+    setIsSessionSoundsOpen(false);
     setMode("idle");
     setElapsedSeconds(0);
     setRemainingSeconds(durationMinutes * 60);
@@ -180,15 +192,23 @@ export default function FocusPage() {
 
   function startExitHold() {
     setIsExitHolding(true);
+    setIsExitValidated(false);
 
     if (exitHoldRef.current) {
       window.clearTimeout(exitHoldRef.current);
     }
 
-    exitHoldRef.current = window.setTimeout(stopSession, 900);
+    exitHoldRef.current = window.setTimeout(() => {
+      setIsExitHolding(false);
+      setIsExitValidated(true);
+      exitHoldRef.current = null;
+      exitCompleteRef.current = window.setTimeout(stopSession, 820);
+    }, 900);
   }
 
   function cancelExitHold() {
+    if (isExitValidated) return;
+
     setIsExitHolding(false);
 
     if (exitHoldRef.current) {
@@ -271,6 +291,12 @@ export default function FocusPage() {
         ))}
       </div>
 
+      <div className="focus-category-list" aria-label="Catégories focus">
+        <span>Working</span>
+        <span>Motivation</span>
+        <span>Deep work</span>
+      </div>
+
       <div className="focus-bottom-fade" aria-hidden="true" />
 
       {isRunning && (
@@ -282,19 +308,36 @@ export default function FocusPage() {
             <div className="focus-session-clock" aria-live="polite">
               {displayValue}
             </div>
-            <div className="focus-session-playlists" aria-label="Sons focus">
-              {playlists.map((playlist, index) => (
-                <button
-                  className={`focus-session-sound ${activePlaylist === index ? "is-active" : ""}`}
-                  type="button"
-                  key={playlist.title}
-                  onClick={() => playPlaylist(playlist, index)}
-                >
-                  <span>{playlist.title}</span>
-                  <small>{activePlaylist === index ? "En boucle" : "Playlist"}</small>
-                </button>
-              ))}
+            <div className="focus-session-sounds">
+              <button
+                className={`focus-session-sound-preview ${activePlaylist === 0 ? "is-active" : ""}`}
+                type="button"
+                onClick={() => playPlaylist(playlists[0], 0)}
+              >
+                <span>{playlists[0].title}</span>
+                <small>{activePlaylist === 0 ? "En boucle" : playlists[0].subtitle}</small>
+              </button>
+              <button className="focus-see-more" type="button" onClick={() => setIsSessionSoundsOpen((open) => !open)}>
+                <span>Voir plus</span>
+                <ChevronDownIcon width={15} height={15} />
+              </button>
             </div>
+
+            {isSessionSoundsOpen && (
+              <div className="focus-session-playlists" aria-label="Sons focus">
+                {playlists.map((playlist, index) => (
+                  <button
+                    className={`focus-session-sound ${activePlaylist === index ? "is-active" : ""}`}
+                    type="button"
+                    key={playlist.title}
+                    onClick={() => playPlaylist(playlist, index)}
+                  >
+                    <span>{playlist.title}</span>
+                    <small>{activePlaylist === index ? "En boucle" : "Playlist"}</small>
+                  </button>
+                ))}
+              </div>
+            )}
             <button className="focus-stop-button" type="button" onClick={() => setIsExitPromptOpen(true)}>
               <StopIcon width={16} height={16} />
               Stopper
@@ -309,14 +352,15 @@ export default function FocusPage() {
                 <h2>Partir tôt ?</h2>
                 <p>N'abandonne pas, tu as commencé pour une raison.</p>
               <button
-                className={`early-exit-hold ${isExitHolding ? "is-holding" : ""}`}
+                className={`early-exit-hold ${isExitHolding ? "is-holding" : ""} ${isExitValidated ? "is-validated" : ""}`}
                 type="button"
                 onPointerDown={startExitHold}
                 onPointerUp={cancelExitHold}
                   onPointerCancel={cancelExitHold}
                 onPointerLeave={cancelExitHold}
               >
-                <span>{isExitHolding ? "Maintenez appuyé..." : "Maintiens pour partir"}</span>
+                {isExitValidated && <CheckIcon width={16} height={16} />}
+                <span>{isExitValidated ? "Terminer" : isExitHolding ? "Maintenez appuyé..." : "Maintiens pour partir"}</span>
               </button>
                 <button className="early-exit-cancel" type="button" onClick={() => setIsExitPromptOpen(false)}>
                   Laisse tomber
