@@ -1,5 +1,6 @@
 import { ChevronLeftIcon, ChevronRightIcon, TagIcon } from "@heroicons/react/24/solid";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ScoreRing from "../ui/ScoreRing.jsx";
 
@@ -31,8 +32,20 @@ const heatmapDots = Array.from({ length: 27 * 14 }, (_, index) => {
   return { id: index, level: strongBand ? 3 : activeBand ? 2 : (column + row) % 11 === 0 ? 1 : 0 };
 });
 
+function formatDay(offset) {
+  if (offset === 0) return "Aujourd'hui";
+  if (offset === -1) return "Hier";
+  if (offset === 1) return "Demain";
+
+  const formatter = new Intl.DateTimeFormat("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return formatter.format(date).replace(".", "");
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
+  const [dayOffset, setDayOffset] = useState(0);
 
   return (
     <section className="home-page page-surface" aria-label="Accueil">
@@ -42,10 +55,14 @@ export default function HomePage() {
 
       <header className="top-row home-top-row">
         <div className="avatar" aria-label="Profil" />
-        <div className="home-day-switcher" aria-label="Jour">
-          <ChevronLeftIcon width={16} height={16} />
-          <span>Aujourd'hui</span>
-          <ChevronRightIcon width={16} height={16} />
+        <div className="day-switcher home-day-switcher" aria-label="Navigation des jours">
+          <button type="button" aria-label="Jour precedent" onClick={() => setDayOffset((value) => value - 1)}>
+            <ChevronLeftIcon width={24} height={24} />
+          </button>
+          <div className="day-pill">{formatDay(dayOffset)}</div>
+          <button type="button" aria-label="Jour suivant" onClick={() => setDayOffset((value) => value + 1)}>
+            <ChevronRightIcon width={24} height={24} />
+          </button>
         </div>
         <ScoreRing score={mainScore} />
       </header>

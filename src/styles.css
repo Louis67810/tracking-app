@@ -462,22 +462,11 @@ h1 {
 }
 
 .home-day-switcher {
-  width: 146px;
-  height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.9);
-  background: #15161c;
-  font-size: 16px;
-  font-weight: 600;
+  width: 184px;
 }
 
-.home-day-switcher svg {
-  flex: 0 0 auto;
-  color: #ffffff;
+.home-day-switcher .day-pill {
+  min-width: 104px;
 }
 
 .home-score-panel {
@@ -602,23 +591,30 @@ h1 {
   gap: 10px;
 }
 
-.home-work-cards::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  width: 356px;
-  height: 58px;
-  left: 15px;
-  top: 40px;
-  border-radius: 200px;
-  background: rgba(129, 214, 245, 0.22);
-  filter: blur(18px);
-  pointer-events: none;
-}
-
 .home-work-cards .work-card {
   position: relative;
   z-index: 1;
+  transition: transform 220ms cubic-bezier(0.2, 0.85, 0.22, 1), border-color 180ms ease, background 180ms ease;
+}
+
+.home-work-cards .work-card:active {
+  animation: home-card-press 260ms cubic-bezier(0.2, 0.85, 0.22, 1);
+}
+
+.home-work-cards .card-light {
+  display: none;
+}
+
+@keyframes home-card-press {
+  0% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(0.965);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .home-heatmap-card {

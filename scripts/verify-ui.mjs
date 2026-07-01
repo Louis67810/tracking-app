@@ -46,6 +46,9 @@ const checks = {
   bodyTextLength: (await page.locator("body").innerText()).trim().length,
   errors
 };
+await page.locator(".home-day-switcher button").nth(1).click();
+checks.homeDayAfterNext = await page.locator(".home-day-switcher .day-pill").textContent();
+await page.locator(".home-day-switcher button").first().click();
 
 await page.screenshot({ path: "home-page-verify.png", fullPage: true });
 
