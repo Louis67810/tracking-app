@@ -68,14 +68,15 @@ checks.focus.timerRunning = {
   value: await page.locator(".focus-session-clock").textContent(),
   overlayVisible: await page.locator(".focus-session-overlay").isVisible()
 };
-await page.locator(".focus-stop-button").click();
+await page.locator(".focus-session-overlay").click({ position: { x: 220, y: 260 } });
+await page.locator(".focus-session-close").click();
 await page.locator(".early-exit-sheet").waitFor({ state: "visible" });
 const exitHold = page.locator(".early-exit-hold");
 const exitHoldBox = await exitHold.boundingBox();
 if (exitHoldBox) {
   await page.mouse.move(exitHoldBox.x + exitHoldBox.width / 2, exitHoldBox.y + exitHoldBox.height / 2);
   await page.mouse.down();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2050);
   await page.mouse.up();
 }
 await page.locator(".focus-session-overlay").waitFor({ state: "detached" });

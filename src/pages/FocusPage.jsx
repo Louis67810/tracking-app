@@ -1,4 +1,4 @@
-import { CheckIcon, ChevronDownIcon, MinusIcon, PlayIcon, PlusIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { CheckIcon, MinusIcon, PlayIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ScoreRing from "../ui/ScoreRing.jsx";
 
@@ -26,6 +26,14 @@ function formatClock(totalSeconds) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+function formatLongClock(totalSeconds) {
+  const safeSeconds = Math.max(0, totalSeconds);
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 function stopAudio(audioRef, ambientRef) {
   if (audioRef.current) {
     audioRef.current.pause();
@@ -50,12 +58,15 @@ export default function FocusPage() {
   const [isExitPromptOpen, setIsExitPromptOpen] = useState(false);
   const [isExitHolding, setIsExitHolding] = useState(false);
   const [isExitValidated, setIsExitValidated] = useState(false);
-  const [isSessionSoundsOpen, setIsSessionSoundsOpen] = useState(false);
+  const [areSessionControlsVisible, setSessionControlsVisible] = useState(false);
+  const [exitSheetDragY, setExitSheetDragY] = useState(0);
+  const [isExitSheetDragging, setIsExitSheetDragging] = useState(false);
   const pageRef = useRef(null);
   const audioRef = useRef(null);
   const ambientRef = useRef(null);
   const exitHoldRef = useRef(null);
   const exitCompleteRef = useRef(null);
+  const exitSheetDragRef = useRef(null);
 
   useEffect(() => {
     if (mode === "timer" && !isRunning) {
@@ -109,6 +120,11 @@ export default function FocusPage() {
     return String(durationMinutes);
   }, [durationMinutes, elapsedSeconds, isRunning, mode, remainingSeconds]);
 
+  const sessionDisplayValue = useMemo(() => {
+    if (mode === "free") return formatLongClock(elapsedSeconds);
+    return formatLongClock(remainingSeconds);
+  }, [elapsedSeconds, mode, remainingSeconds]);
+
   function adjustDuration(delta) {
     if (isRunning) return;
 
@@ -116,24 +132,33 @@ export default function FocusPage() {
     setMode("idle");
   }
 
-  function startTimer() {
+  async function ensurePlaylist(index) {
+    if (typeof index !== "number" || activePlaylist === index) return;
+    await playPlaylist(playlists[index], index);
+  }
+
+  async function startTimer(index) {
     pageRef.current?.scrollTo({ top: 0 });
+    await ensurePlaylist(index);
 
     if (mode !== "timer" || remainingSeconds === 0) {
       setRemainingSeconds(durationMinutes * 60);
     }
 
+    setSessionControlsVisible(false);
     setMode("timer");
     setIsRunning(true);
   }
 
-  function startFree() {
+  async function startFree(index) {
     pageRef.current?.scrollTo({ top: 0 });
+    await ensurePlaylist(index);
 
     if (mode !== "free") {
       setElapsedSeconds(0);
     }
 
+    setSessionControlsVisible(false);
     setMode("free");
     setIsRunning(true);
   }
@@ -184,7 +209,9 @@ export default function FocusPage() {
     setIsExitPromptOpen(false);
     setIsExitHolding(false);
     setIsExitValidated(false);
-    setIsSessionSoundsOpen(false);
+    setSessionControlsVisible(false);
+    setExitSheetDragY(0);
+    setIsExitSheetDragging(false);
     setMode("idle");
     setElapsedSeconds(0);
     setRemainingSeconds(durationMinutes * 60);
@@ -202,8 +229,8 @@ export default function FocusPage() {
       setIsExitHolding(false);
       setIsExitValidated(true);
       exitHoldRef.current = null;
-      exitCompleteRef.current = window.setTimeout(stopSession, 820);
-    }, 900);
+      exitCompleteRef.current = window.setTimeout(stopSession, 1000);
+    }, 1900);
   }
 
   function cancelExitHold() {
@@ -215,6 +242,36 @@ export default function FocusPage() {
       window.clearTimeout(exitHoldRef.current);
       exitHoldRef.current = null;
     }
+  }
+
+  function startExitSheetDrag(event) {
+    if (event.target.closest("button")) return;
+
+    exitSheetDragRef.current = { pointerId: event.pointerId, startY: event.clientY, currentY: 0 };
+    setIsExitSheetDragging(true);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function moveExitSheetDrag(event) {
+    const drag = exitSheetDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const nextY = Math.max(0, event.clientY - drag.startY);
+    drag.currentY = nextY;
+    setExitSheetDragY(nextY);
+  }
+
+  function endExitSheetDrag(event) {
+    const drag = exitSheetDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    if (drag.currentY > 92) {
+      setIsExitPromptOpen(false);
+    }
+
+    exitSheetDragRef.current = null;
+    setIsExitSheetDragging(false);
+    setExitSheetDragY(0);
   }
 
   return (
@@ -276,9 +333,8 @@ export default function FocusPage() {
 
       <div className="focus-playlists" aria-label="Playlists focus">
         {playlists.map((playlist, index) => (
-          <button
+          <article
             className={`focus-playlist-card ${activePlaylist === index ? "is-active" : ""}`}
-            type="button"
             key={playlist.title}
             onClick={() => playPlaylist(playlist, index)}
           >
@@ -287,7 +343,18 @@ export default function FocusPage() {
               <strong>{playlist.title}</strong>
               <span>{playlist.subtitle}</span>
             </span>
-          </button>
+            <button
+              className="playlist-start"
+              type="button"
+              aria-label={`Démarrer ${playlist.title}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                startTimer(index);
+              }}
+            >
+              <PlayIcon width={14} height={14} />
+            </button>
+          </article>
         ))}
       </div>
 
@@ -300,51 +367,29 @@ export default function FocusPage() {
       <div className="focus-bottom-fade" aria-hidden="true" />
 
       {isRunning && (
-        <div className="focus-session-overlay" role="dialog" aria-label="Session focus en cours">
+        <div className="focus-session-overlay" role="dialog" aria-label="Session focus en cours" onClick={() => setSessionControlsVisible(true)}>
           <div className="focus-session-panel">
+            {areSessionControlsVisible && (
             <button className="focus-session-close" type="button" onClick={() => setIsExitPromptOpen(true)} aria-label="Quitter la session">
               <XMarkIcon width={28} height={28} />
             </button>
-            <div className="focus-session-clock" aria-live="polite">
-              {displayValue}
-            </div>
-            <div className="focus-session-sounds">
-              <button
-                className={`focus-session-sound-preview ${activePlaylist === 0 ? "is-active" : ""}`}
-                type="button"
-                onClick={() => playPlaylist(playlists[0], 0)}
-              >
-                <span>{playlists[0].title}</span>
-                <small>{activePlaylist === 0 ? "En boucle" : playlists[0].subtitle}</small>
-              </button>
-              <button className="focus-see-more" type="button" onClick={() => setIsSessionSoundsOpen((open) => !open)}>
-                <span>Voir plus</span>
-                <ChevronDownIcon width={15} height={15} />
-              </button>
-            </div>
-
-            {isSessionSoundsOpen && (
-              <div className="focus-session-playlists" aria-label="Sons focus">
-                {playlists.map((playlist, index) => (
-                  <button
-                    className={`focus-session-sound ${activePlaylist === index ? "is-active" : ""}`}
-                    type="button"
-                    key={playlist.title}
-                    onClick={() => playPlaylist(playlist, index)}
-                  >
-                    <span>{playlist.title}</span>
-                    <small>{activePlaylist === index ? "En boucle" : "Playlist"}</small>
-                  </button>
-                ))}
-              </div>
             )}
-            <button className="focus-stop-button" type="button" onClick={() => setIsExitPromptOpen(true)}>
-              <StopIcon width={16} height={16} />
-              Stopper
-            </button>
+            <div className="focus-session-title">Prends l'air</div>
+            <div className="focus-session-clock" aria-live="polite">
+              {sessionDisplayValue}
+            </div>
 
             {isExitPromptOpen && (
-              <div className="early-exit-sheet" role="alertdialog" aria-label="Partir tôt">
+              <div
+                className={`early-exit-sheet ${isExitSheetDragging ? "is-dragging" : ""}`}
+                role="alertdialog"
+                aria-label="Partir tôt"
+                style={{ "--exit-sheet-y": `${exitSheetDragY}px` }}
+                onPointerDown={startExitSheetDrag}
+                onPointerMove={moveExitSheetDrag}
+                onPointerUp={endExitSheetDrag}
+                onPointerCancel={endExitSheetDrag}
+              >
                 <div className="early-exit-handle" aria-hidden="true" />
                 <div className="early-exit-icon" aria-hidden="true">
                   <XMarkIcon width={32} height={32} />

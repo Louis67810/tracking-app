@@ -1774,7 +1774,7 @@ h1 {
 
 .focus-playlists {
   position: absolute;
-  top: 696px;
+  top: 838px;
   left: 38px;
   right: 0;
   width: auto;
@@ -1793,7 +1793,7 @@ h1 {
   position: relative;
   flex: 0 0 208px;
   width: 208px;
-  height: 235px;
+  height: 282px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1816,6 +1816,27 @@ h1 {
   box-shadow:
     0 0 0 2px rgba(114, 180, 240, 0.12),
     inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.playlist-start {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  color: #0d0e13;
+  background: #ffffff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+  transition: transform 180ms cubic-bezier(0.2, 0.85, 0.22, 1);
+}
+
+.playlist-start:active {
+  transform: scale(0.9);
 }
 
 .playlist-status {
@@ -1858,17 +1879,23 @@ h1 {
 }
 
 .focus-bottom-fade {
-  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 122px;
+  pointer-events: none;
+  background: linear-gradient(171.96deg, rgba(13, 14, 19, 0) 6.19%, #0d0e13 42.77%);
 }
 
 .focus-category-list {
   position: absolute;
-  top: 955px;
+  top: 696px;
   left: 38px;
   right: 38px;
   display: grid;
   gap: 12px;
-  padding-bottom: 142px;
+  pointer-events: none;
 }
 
 .focus-category-list span {
@@ -1887,66 +1914,34 @@ h1 {
   position: absolute;
   z-index: 30;
   inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0 14px 18px;
+  display: block;
+  padding: 0;
   background: rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(8px);
   animation: focus-layer-in 260ms ease-out both;
 }
 
 .focus-session-panel {
-  position: relative;
+  position: absolute;
+  inset: 0;
   isolation: isolate;
-  width: min(411px, calc(100vw - 28px));
+  width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: 0 0 23px 23px;
+  border-radius: inherit;
   color: #ffffff;
   background:
-    linear-gradient(180deg, rgba(64, 64, 64, 0.05) 0%, rgba(11, 11, 11, 0.05) 100%),
-    linear-gradient(180deg, rgba(50, 50, 50, 0.1) 0%, rgba(34, 34, 34, 0.1) 100%),
-    radial-gradient(64.55% 103.26% at 95.3% -3.26%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 78.88%),
-    #131418;
-  box-shadow:
-    inset 0 0.5px 1px rgba(255, 255, 255, 0.15),
-    inset 0 -1px 1.2px 0.35px #121212,
-    0 -18px 70px rgba(0, 0, 0, 0.38);
+    linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.18) 60%, rgba(0, 0, 0, 0.36) 100%),
+    url("/assets/work-background.png") center / cover no-repeat;
+  box-shadow: none;
   animation: focus-panel-in 360ms cubic-bezier(0.18, 0.9, 0.2, 1) both;
-}
-
-.focus-session-panel::before,
-.focus-session-panel::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  border-radius: 999px;
-  transform: rotate(-45deg);
-  pointer-events: none;
-}
-
-.focus-session-panel::before {
-  width: 245px;
-  height: 603px;
-  left: -177px;
-  top: -151px;
-  background: radial-gradient(68.54% 68.72% at 55.02% 31.46%, rgba(217, 217, 217, 0.08) 0%, rgba(140, 140, 140, 0.02) 50%, rgba(115, 115, 115, 0) 80%);
-}
-
-.focus-session-panel::after {
-  width: 105px;
-  height: 603px;
-  left: -210px;
-  top: -291px;
-  background: radial-gradient(50% 50% at 50% 50%, rgba(217, 217, 217, 0.06) 0%, rgba(115, 115, 115, 0.02) 80%, rgba(0, 0, 0, 0) 100%);
 }
 
 .focus-session-close {
   position: absolute;
   z-index: 2;
-  top: 20px;
-  right: 20px;
+  top: 88px;
+  left: 38px;
   width: 44px;
   height: 44px;
   display: grid;
@@ -1971,18 +1966,38 @@ h1 {
 .focus-session-clock {
   position: absolute;
   z-index: 2;
-  top: 236px;
-  left: 24px;
-  right: 24px;
-  min-height: 78px;
+  left: 32px;
+  right: 32px;
+  bottom: 106px;
+  height: 112px;
   display: grid;
   place-items: center;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 74px;
+  border-radius: 22px;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(31, 47, 12, 0.82);
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 -28px 34px rgba(255, 255, 255, 0.08);
+  font-family: "DSEG7 Classic", "Digital-7", "DS-Digital", "SF Pro Rounded", monospace;
+  font-size: 58px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
+}
+
+.focus-session-title {
+  position: absolute;
+  z-index: 2;
+  left: 32px;
+  right: 32px;
+  bottom: 250px;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .focus-session-sounds {
@@ -2180,6 +2195,13 @@ h1 {
     inset 0 0.5px 1px rgba(255, 255, 255, 0.15),
     inset 0 -1px 1.2px 0.35px #121212,
     0 -24px 80px rgba(0, 0, 0, 0.4);
+  touch-action: none;
+  transform: translateY(var(--exit-sheet-y, 0px));
+  transition: transform 220ms cubic-bezier(0.2, 0.85, 0.22, 1);
+}
+
+.early-exit-sheet.is-dragging {
+  transition: none;
 }
 
 .early-exit-handle {
@@ -2227,10 +2249,12 @@ h1 {
   height: 58px;
   margin-top: 58px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #ffffff;
-  background: rgba(255, 93, 120, 0.14);
+  background:
+    radial-gradient(95% 180% at 50% 110%, rgba(255, 93, 120, 0.5), rgba(255, 93, 120, 0.08) 58%, rgba(255, 255, 255, 0.04) 100%),
+    rgba(255, 93, 120, 0.14);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   font-size: 14px;
   font-weight: 600;
@@ -2243,15 +2267,15 @@ h1 {
   position: absolute;
   inset: 0;
   width: 0%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, rgba(255, 214, 220, 0.96), rgba(255, 147, 164, 0.88));
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.1);
   opacity: 0;
   transition: opacity 120ms ease;
 }
 
 .early-exit-hold.is-holding::before {
   opacity: 1;
-  animation: hold-fill 900ms linear forwards;
+  animation: hold-fill 1900ms linear forwards;
 }
 
 .early-exit-hold span {
