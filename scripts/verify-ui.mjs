@@ -281,11 +281,9 @@ await page.locator(".recap-continue").click();
 checks.recap.summaryCards = await page.locator(".summary-card").count();
 await page.locator(".recap-notes").fill("Note de test");
 await page.locator(".recap-continue").click();
-await page.locator(".recap-dashboard").waitFor({ state: "visible" });
+await page.locator(".recap-done-card").waitFor({ state: "visible" });
 checks.recap.done = {
-  score: await page.locator(".recap-score-panel strong").textContent(),
-  heatmapDots: await page.locator(".heatmap-dot").count(),
-  nfcCards: await page.locator(".recap-nfc-card").count(),
+  title: await page.locator(".recap-title").textContent(),
   stored: await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("daily-recap-")).length)
 };
 await page.screenshot({ path: "recap-page-verify.png", fullPage: true });
