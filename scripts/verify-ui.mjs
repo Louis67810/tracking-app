@@ -255,6 +255,39 @@ await page.locator(".calendar-back").click();
 await page.waitForURL("**/travail");
 checks.backToWork = await page.locator("h1").textContent();
 
+await page.locator('a[href="/recap"]').click();
+await page.waitForURL("**/recap");
+await page.evaluate(() => {
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith("daily-recap-")) localStorage.removeItem(key);
+  }
+});
+await page.reload({ waitUntil: "networkidle" });
+checks.recap = {
+  title: await page.locator(".recap-title").textContent(),
+  moodCount: await page.locator(".mood-card").count(),
+  recapNavActive: await page.locator('a[href="/recap"]').evaluate((node) => node.classList.contains("active"))
+};
+await page.locator(".mood-card").nth(3).click();
+await page.locator(".recap-continue").click();
+checks.recap.habitsTitle = await page.locator(".recap-title").textContent();
+await page.locator(".habit-card").nth(0).locator(".habit-choice.yes").click();
+await page.locator(".habit-card").nth(0).locator(".quantity-stepper button").nth(1).click();
+await page.locator(".habit-card").nth(1).locator(".habit-choice.no").click();
+await page.locator(".habit-card").nth(2).locator(".habit-choice.yes").click();
+await page.locator(".habit-card").nth(3).locator(".habit-choice.yes").click();
+checks.recap.answeredHabits = await page.locator(".habit-choice.is-selected").count();
+await page.locator(".recap-continue").click();
+checks.recap.summaryCards = await page.locator(".summary-card").count();
+await page.locator(".recap-notes").fill("Note de test");
+await page.locator(".recap-continue").click();
+await page.locator(".recap-done-card").waitFor({ state: "visible" });
+checks.recap.done = {
+  title: await page.locator(".recap-title").textContent(),
+  stored: await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("daily-recap-")).length)
+};
+await page.screenshot({ path: "recap-page-verify.png", fullPage: true });
+
 await page.locator('a[href="/accueil"]').click();
 await page.waitForURL("**/accueil");
 checks.afterNav = await page
