@@ -19,6 +19,8 @@ const playlists = [
   }
 ];
 
+const playlistSections = ["Pour toi", "Working", "Motivation", "Deep work"];
+
 function formatClock(totalSeconds) {
   const safeSeconds = Math.max(0, totalSeconds);
   const minutes = Math.floor(safeSeconds / 60);
@@ -234,6 +236,7 @@ export default function FocusPage() {
   }
 
   function cancelExitHold() {
+    if (exitCompleteRef.current) return;
     if (isExitValidated) return;
 
     setIsExitHolding(false);
@@ -311,57 +314,48 @@ export default function FocusPage() {
         </button>
       </div>
 
-      <button
-        className="focus-primary"
-        type="button"
-        onClick={startTimer}
-      >
+      <button className="focus-primary" type="button" onClick={startTimer}>
         <PlayIcon width={16} height={16} />
         <span>{mode === "timer" && isRunning ? "Pause" : "Démarrer"}</span>
       </button>
 
-      <button
-        className="focus-secondary"
-        type="button"
-        onClick={startFree}
-      >
+      <button className="focus-secondary" type="button" onClick={startFree}>
         <PlayIcon width={16} height={16} />
         <span>{mode === "free" && isRunning ? "Pause libre" : "Démarrer librement"}</span>
       </button>
 
-      <h2 className="focus-section-title">Pour toi</h2>
-
-      <div className="focus-playlists" aria-label="Playlists focus">
-        {playlists.map((playlist, index) => (
-          <article
-            className={`focus-playlist-card ${activePlaylist === index ? "is-active" : ""}`}
-            key={playlist.title}
-            onClick={() => playPlaylist(playlist, index)}
-          >
-            <span className="playlist-status">{activePlaylist === index ? "En boucle" : "Playlist"}</span>
-            <span className="playlist-copy">
-              <strong>{playlist.title}</strong>
-              <span>{playlist.subtitle}</span>
-            </span>
-            <button
-              className="playlist-start"
-              type="button"
-              aria-label={`Démarrer ${playlist.title}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                startTimer(index);
-              }}
-            >
-              <PlayIcon width={14} height={14} />
-            </button>
-          </article>
+      <div className="focus-music-sections" aria-label="Playlists focus">
+        {playlistSections.map((section) => (
+          <section className="focus-music-section" key={section}>
+            <h2 className="focus-music-section-title">{section}</h2>
+            <div className="focus-playlists">
+              {playlists.map((playlist, index) => (
+                <article
+                  className={`focus-playlist-card ${activePlaylist === index ? "is-active" : ""}`}
+                  key={`${section}-${playlist.title}`}
+                  onClick={() => playPlaylist(playlist, index)}
+                >
+                  <span className="playlist-status">{activePlaylist === index ? "En boucle" : "Playlist"}</span>
+                  <span className="playlist-copy">
+                    <strong>{playlist.title}</strong>
+                    <span>{playlist.subtitle}</span>
+                  </span>
+                  <button
+                    className="playlist-start"
+                    type="button"
+                    aria-label={`Démarrer ${playlist.title}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      startTimer(index);
+                    }}
+                  >
+                    <PlayIcon width={14} height={14} />
+                  </button>
+                </article>
+              ))}
+            </div>
+          </section>
         ))}
-      </div>
-
-      <div className="focus-category-list" aria-label="Catégories focus">
-        <span>Working</span>
-        <span>Motivation</span>
-        <span>Deep work</span>
       </div>
 
       <div className="focus-bottom-fade" aria-hidden="true" />
@@ -370,9 +364,9 @@ export default function FocusPage() {
         <div className="focus-session-overlay" role="dialog" aria-label="Session focus en cours" onClick={() => setSessionControlsVisible(true)}>
           <div className="focus-session-panel">
             {areSessionControlsVisible && (
-            <button className="focus-session-close" type="button" onClick={() => setIsExitPromptOpen(true)} aria-label="Quitter la session">
-              <XMarkIcon width={28} height={28} />
-            </button>
+              <button className="focus-session-close" type="button" onClick={() => setIsExitPromptOpen(true)} aria-label="Quitter la session">
+                <XMarkIcon width={28} height={28} />
+              </button>
             )}
             <div className="focus-session-title">Prends l'air</div>
             <div className="focus-session-clock" aria-live="polite">
@@ -396,17 +390,16 @@ export default function FocusPage() {
                 </div>
                 <h2>Partir tôt ?</h2>
                 <p>N'abandonne pas, tu as commencé pour une raison.</p>
-              <button
-                className={`early-exit-hold ${isExitHolding ? "is-holding" : ""} ${isExitValidated ? "is-validated" : ""}`}
-                type="button"
-                onPointerDown={startExitHold}
-                onPointerUp={cancelExitHold}
+                <button
+                  className={`early-exit-hold ${isExitHolding ? "is-holding" : ""} ${isExitValidated ? "is-validated" : ""}`}
+                  type="button"
+                  onPointerDown={startExitHold}
+                  onPointerUp={cancelExitHold}
                   onPointerCancel={cancelExitHold}
-                onPointerLeave={cancelExitHold}
-              >
-                {isExitValidated && <CheckIcon width={16} height={16} />}
-                <span>{isExitValidated ? "Terminer" : isExitHolding ? "Maintenez appuyé..." : "Maintiens pour partir"}</span>
-              </button>
+                >
+                  {isExitValidated && <CheckIcon width={16} height={16} />}
+                  <span>{isExitValidated ? "Terminer" : isExitHolding ? "Maintenez appuyé..." : "Maintiens pour partir"}</span>
+                </button>
                 <button className="early-exit-cancel" type="button" onClick={() => setIsExitPromptOpen(false)}>
                   Laisse tomber
                 </button>

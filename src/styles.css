@@ -1760,10 +1760,27 @@ h1 {
   transform: scale(0.96);
 }
 
-.focus-section-title {
+.focus-section-title,
+.focus-category-list {
+  display: none;
+}
+
+.focus-music-sections {
   position: absolute;
   top: 646px;
   left: 38px;
+  right: 0;
+  display: grid;
+  gap: 34px;
+  padding-bottom: 158px;
+}
+
+.focus-music-section {
+  display: grid;
+  gap: 18px;
+}
+
+.focus-music-section-title {
   margin: 0;
   color: rgba(255, 255, 255, 0.9);
   font-size: 20px;
@@ -1773,10 +1790,6 @@ h1 {
 }
 
 .focus-playlists {
-  position: absolute;
-  top: 838px;
-  left: 38px;
-  right: 0;
   width: auto;
   display: flex;
   gap: 16px;
@@ -1879,35 +1892,11 @@ h1 {
 }
 
 .focus-bottom-fade {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 122px;
-  pointer-events: none;
-  background: linear-gradient(171.96deg, rgba(13, 14, 19, 0) 6.19%, #0d0e13 42.77%);
-}
-
-.focus-category-list {
-  position: absolute;
-  top: 696px;
-  left: 38px;
-  right: 38px;
-  display: grid;
-  gap: 12px;
-  pointer-events: none;
-}
-
-.focus-category-list span {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: 0;
+  display: none;
 }
 
 .focus-page ~ .bottom-nav {
-  background: transparent;
+  background: linear-gradient(171.96deg, rgba(13, 14, 19, 0) 6.19%, #0d0e13 42.77%);
 }
 
 .focus-session-overlay {
@@ -1974,13 +1963,14 @@ h1 {
   place-items: center;
   border-radius: 22px;
   color: rgba(255, 255, 255, 0.92);
-  background: rgba(31, 47, 12, 0.82);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(22px);
   box-shadow:
     0 22px 44px rgba(0, 0, 0, 0.26),
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 -28px 34px rgba(255, 255, 255, 0.08);
+    inset 0 -28px 34px rgba(255, 255, 255, 0.06);
   font-family: "DSEG7 Classic", "Digital-7", "DS-Digital", "SF Pro Rounded", monospace;
-  font-size: 58px;
+  font-size: 66px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0;
@@ -2197,7 +2187,8 @@ h1 {
     0 -24px 80px rgba(0, 0, 0, 0.4);
   touch-action: none;
   transform: translateY(var(--exit-sheet-y, 0px));
-  transition: transform 220ms cubic-bezier(0.2, 0.85, 0.22, 1);
+  transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: early-exit-sheet-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .early-exit-sheet.is-dragging {
@@ -2249,7 +2240,7 @@ h1 {
   height: 58px;
   margin-top: 58px;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #ffffff;
   background:
@@ -2267,7 +2258,7 @@ h1 {
   position: absolute;
   inset: 0;
   width: 0%;
-  border-radius: 0;
+  border-radius: inherit;
   background: rgba(255, 255, 255, 0.1);
   opacity: 0;
   transition: opacity 120ms ease;
@@ -2321,6 +2312,17 @@ h1 {
   }
   to {
     width: 100%;
+  }
+}
+
+@keyframes early-exit-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(42px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(var(--exit-sheet-y, 0px));
   }
 }
 
