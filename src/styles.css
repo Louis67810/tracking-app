@@ -2764,6 +2764,334 @@ h1 {
   line-height: 1.35;
 }
 
+.recap-dashboard {
+  overflow-y: auto;
+  padding-bottom: 140px;
+  scrollbar-width: none;
+}
+
+.recap-dashboard::-webkit-scrollbar {
+  display: none;
+}
+
+.recap-dashboard > .recap-title,
+.recap-dashboard > .recap-divider {
+  display: none;
+}
+
+.recap-day-switcher {
+  position: absolute;
+  left: 147px;
+  top: 88px;
+  width: 146px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  background: #15161c;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.recap-day-switcher svg {
+  flex: 0 0 auto;
+  color: #ffffff;
+}
+
+.recap-score-panel {
+  position: absolute;
+  left: 162px;
+  top: 258px;
+  width: 133px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.recap-score-panel span {
+  color: #62b4e1;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.recap-score-panel strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 70px;
+  font-weight: 600;
+  line-height: 1;
+  background: linear-gradient(67.7deg, #46abe2 4.99%, #aecfe0 95.01%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.recap-score-panel i {
+  width: 34px;
+  height: 27px;
+  display: block;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  border-radius: 4px;
+  background: #aecfe0;
+}
+
+.recap-score-branches {
+  position: absolute;
+  left: 118px;
+  top: 356px;
+  width: 225px;
+  height: 31px;
+  border-top: 1px solid #202126;
+  border-left: 1px solid #202126;
+  border-right: 1px solid #202126;
+  border-radius: 0 0 34px 34px;
+  opacity: 0.95;
+}
+
+.recap-score-branches::before,
+.recap-score-branches::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  width: 1px;
+  height: 19px;
+  background: #202126;
+}
+
+.recap-score-branches::before {
+  left: 75px;
+}
+
+.recap-score-branches::after {
+  right: 75px;
+}
+
+.recap-score-pills {
+  position: absolute;
+  left: 89px;
+  top: 383px;
+  width: 276px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recap-score-pill {
+  width: 63px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.recap-score-pill b {
+  width: 63px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 37px;
+  color: #62b4e1;
+  background: #14141b;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.recap-score-pill svg {
+  color: #acd7ed;
+}
+
+.recap-score-pill span {
+  color: #62b4e1;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.recap-heatmap-card {
+  position: absolute;
+  left: 38px;
+  top: 457px;
+  width: 368px;
+  height: 307px;
+  padding: 21px 17px 14px 19px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  color: #ffffff;
+  background: #14151b;
+  box-shadow: -12px 28px 9px rgba(0, 0, 0, 0.01), -8px 18px 8px rgba(0, 0, 0, 0.04), -4px 10px 7px rgba(0, 0, 0, 0.15), -2px 4px 5px rgba(0, 0, 0, 0.26), 0 1px 3px rgba(0, 0, 0, 0.29);
+}
+
+.recap-heatmap-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  height: 29px;
+}
+
+.recap-heatmap-card header span {
+  color: #484858;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.recap-heatmap-card header button {
+  width: 98px;
+  height: 29px;
+  border: 0;
+  border-radius: 8px;
+  color: #717171;
+  background: #2b2d34;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+  font-family: Inter, "SF Pro Rounded", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.heatmap-body {
+  margin-top: 36px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.heatmap-scale {
+  height: 187px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.heatmap-scale span,
+.heatmap-dates span {
+  color: #717171;
+  font-family: Inter, "SF Pro Rounded", system-ui, sans-serif;
+  font-size: 10.8px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.heatmap-grid {
+  width: 311px;
+  height: 187px;
+  display: grid;
+  grid-template-columns: repeat(27, 6.7px);
+  grid-template-rows: repeat(14, 6.7px);
+  grid-auto-flow: column;
+  gap: 4.6px;
+}
+
+.heatmap-dot {
+  width: 6.7px;
+  height: 6.7px;
+  border-radius: 50%;
+  background: rgba(72, 72, 88, 0.44);
+}
+
+.heatmap-dot.level-1 {
+  background: rgba(204, 233, 249, 0.4);
+}
+
+.heatmap-dot.level-2 {
+  background: #d3eefd;
+}
+
+.heatmap-dot.level-3 {
+  background: #44b8f7;
+  box-shadow: 0 0 0 2px rgba(32, 94, 128, 0.12);
+}
+
+.heatmap-dates {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.recap-dashboard-divider {
+  position: absolute;
+  left: 38px;
+  top: 784px;
+  width: 368px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.recap-nfc-title {
+  position: absolute;
+  left: 35px;
+  top: 813px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.recap-nfc-list {
+  position: absolute;
+  left: 35px;
+  top: 860px;
+  width: 376px;
+  display: grid;
+  gap: 16px;
+}
+
+.recap-nfc-card {
+  height: 95px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 12px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  background: radial-gradient(93.18% 176.09% at 6.82% -76.09%, rgba(255, 255, 255, 0.042) 0%, rgba(255, 255, 255, 0) 100%), rgba(35, 35, 43, 0.18);
+  backdrop-filter: blur(16.5px);
+}
+
+.recap-nfc-card svg {
+  color: #acd7ed;
+}
+
+.recap-nfc-card strong,
+.recap-nfc-card small {
+  display: block;
+}
+
+.recap-nfc-card strong {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.recap-nfc-card small {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.recap-dashboard .recap-done-card {
+  top: 1193px;
+  min-height: 72px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  padding: 16px 18px;
+}
+
+.recap-dashboard .recap-done-card strong {
+  display: none;
+}
+
 @media (max-width: 439px) {
   body {
     display: block;

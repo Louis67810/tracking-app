@@ -1,4 +1,4 @@
-import { ArrowRightIcon, CheckIcon, MinusIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { ArrowRightIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, MinusIcon, PlusIcon, TagIcon } from "@heroicons/react/24/solid";
 import { useEffect, useMemo, useState } from "react";
 import { useWorkData } from "../work/WorkDataContext.jsx";
 import ScoreRing from "../ui/ScoreRing.jsx";
@@ -19,6 +19,27 @@ const habits = [
   { id: "movement", label: "Mouvement", question: "As-tu bouge au moins 20 minutes ?", quantitative: false },
   { id: "planning", label: "Planification", question: "As-tu prepare demain ?", quantitative: false }
 ];
+
+const scorePills = [
+  { label: "Dormir", value: 50 },
+  { label: "Focus", value: 50 },
+  { label: "Santé", value: 50 },
+  { label: "Tâche", value: 50 }
+];
+
+const nfcCards = [
+  { title: "Sommeil", meta: "Routine du soir" },
+  { title: "Focus", meta: "Session profonde" },
+  { title: "Hydratation", meta: "Suivi eau" }
+];
+
+const heatmapDots = Array.from({ length: 27 * 14 }, (_, index) => {
+  const column = index % 27;
+  const row = Math.floor(index / 27);
+  const activeBand = row >= 7 && row <= 10 && column % 5 !== 1;
+  const strongBand = activeBand && (column === 6 || column === 14 || column === 22);
+  return { id: index, level: strongBand ? 3 : activeBand ? 2 : (column + row) % 11 === 0 ? 1 : 0 };
+});
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -193,9 +214,77 @@ export default function RecapPage() {
       )}
 
       {step === 3 && (
-        <div className="recap-step recap-done">
+        <div className="recap-step recap-dashboard">
           <h1 className="recap-title compact">Récap terminé</h1>
           <div className="divider recap-divider compact" />
+          <div className="recap-day-switcher" aria-label="Jour du récap">
+            <ChevronLeftIcon width={16} height={16} />
+            <span>Aujourd'hui</span>
+            <ChevronRightIcon width={16} height={16} />
+          </div>
+
+          <section className="recap-score-panel" aria-label="Score du jour">
+            <span>Score</span>
+            <strong>{mainScore}<i /></strong>
+          </section>
+
+          <div className="recap-score-branches" aria-hidden="true" />
+
+          <div className="recap-score-pills">
+            {scorePills.map((pill) => (
+              <div className="recap-score-pill" key={pill.label}>
+                <b>
+                  <TagIcon width={16} height={16} />
+                  {pill.value}
+                </b>
+                <span>{pill.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <section className="recap-heatmap-card">
+            <header>
+              <span>Temps d'écran moyen</span>
+              <button type="button">Last week</button>
+            </header>
+            <div className="heatmap-body">
+              <div className="heatmap-scale">
+                <span>6h</span>
+                <span>5h</span>
+                <span>4h</span>
+                <span>3h</span>
+                <span>2h</span>
+                <span>1h</span>
+              </div>
+              <div>
+                <div className="heatmap-grid">
+                  {heatmapDots.map((dot) => (
+                    <span className={`heatmap-dot level-${dot.level}`} key={dot.id} />
+                  ))}
+                </div>
+                <div className="heatmap-dates">
+                  <span>Jan 1</span>
+                  <span>Jun 07</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="recap-dashboard-divider" />
+
+          <h2 className="recap-nfc-title">Tes puces NFC</h2>
+          <div className="recap-nfc-list">
+            {nfcCards.map((card) => (
+              <article className="recap-nfc-card" key={card.title}>
+                <TagIcon width={22} height={22} />
+                <span>
+                  <strong>{card.title}</strong>
+                  <small>{card.meta}</small>
+                </span>
+              </article>
+            ))}
+          </div>
+
           <div className="recap-done-card">
             <span className="mood-color" style={{ background: finalRecap.mood.color }} />
             <strong>{finalRecap.mood.label}</strong>
