@@ -19,7 +19,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <AppShell />,
     children: [
-      { index: true, element: <Navigate to="/travail" replace /> },
+      { index: true, element: <Navigate to="/accueil" replace /> },
       { path: "accueil", element: <HomePage /> },
       { path: "focus", element: <FocusPage /> },
       { path: "statistiques", element: <EmptyPage /> },

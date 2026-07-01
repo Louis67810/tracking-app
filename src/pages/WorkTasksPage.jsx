@@ -181,7 +181,7 @@ export default function WorkTasksPage() {
     <section className="tasks-page page-surface" onPointerDown={() => swipe.openId && setSwipe({ id: null, x: 0, openId: null })}>
       <div className={isComposerOpen ? "tasks-content is-blurred" : "tasks-content"}>
         <header className="tasks-topbar">
-          <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/travail")}>
+          <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/accueil")}>
             <ArrowLeftIcon width={24} height={24} />
           </button>
           <div className="day-switcher" aria-label="Navigation des jours">

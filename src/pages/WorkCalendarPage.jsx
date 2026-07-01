@@ -298,7 +298,7 @@ export default function WorkCalendarPage() {
     >
       <div className={isComposerOpen ? "calendar-content is-blurred" : "calendar-content"}>
         <header className="calendar-topbar">
-          <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/travail")}>
+          <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/accueil")}>
             <ArrowLeftIcon width={24} height={24} />
           </button>
 

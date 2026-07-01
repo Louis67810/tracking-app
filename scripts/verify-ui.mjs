@@ -19,7 +19,7 @@ const ports = [5173, 5174];
 let appUrl = null;
 
 for (const port of ports) {
-  const candidate = `http://127.0.0.1:${port}/travail`;
+  const candidate = `http://127.0.0.1:${port}/accueil`;
   try {
     const response = await fetch(candidate);
     if (response.ok) {
@@ -36,8 +36,9 @@ if (!appUrl) {
 await page.goto(appUrl, { waitUntil: "networkidle" });
 
 const checks = {
-  title: await page.locator("h1").textContent(),
-  cards: await page.locator(".work-card").evaluateAll((nodes) => nodes.map((node) => node.innerText.trim())),
+  homeCards: await page.locator(".home-work-cards .work-card").evaluateAll((nodes) => nodes.map((node) => node.innerText.trim())),
+  homeScore: await page.locator(".home-score-panel strong").textContent(),
+  homeHeatmapDots: await page.locator(".home-heatmap-dot").count(),
   navItems: await page
     .locator(".nav-item")
     .evaluateAll((nodes) => nodes.map((node) => ({ text: node.innerText.trim(), active: node.classList.contains("active") }))),
@@ -46,7 +47,7 @@ const checks = {
   errors
 };
 
-await page.screenshot({ path: "work-page-verify.png", fullPage: true });
+await page.screenshot({ path: "home-page-verify.png", fullPage: true });
 
 await page.locator('a[href="/focus"]').click();
 await page.waitForURL("**/focus");
@@ -89,7 +90,7 @@ checks.focus.freeRunning = {
 await page.screenshot({ path: "focus-page-verify.png", fullPage: true });
 await page.goto(appUrl, { waitUntil: "networkidle" });
 
-await page.locator(".work-card").filter({ hasText: "Tes objectifs" }).click();
+await page.locator(".home-work-cards .work-card").filter({ hasText: "Tes objectifs" }).click();
 await page.waitForURL("**/travail/objectifs");
 checks.objectives = {
   title: await page.locator(".objectives-title").textContent(),
@@ -122,15 +123,14 @@ checks.objectives.afterCreate = {
 };
 await page.screenshot({ path: "objectives-page-verify.png", fullPage: true });
 await page.locator(".calendar-back").click();
-await page.waitForURL("**/travail");
+await page.waitForURL("**/accueil");
 
-await page.locator(".work-card").filter({ hasText: "Tes tâches" }).click();
+await page.locator(".home-work-cards .work-card").first().click();
 await page.waitForURL("**/travail/taches");
 checks.tasks = {
   title: await page.locator(".tasks-title").textContent(),
   day: await page.locator(".tasks-page .day-pill").textContent(),
   rowCount: await page.locator(".task-row").count(),
-  workNavActive: await page.locator('a[href="/travail"]').evaluate((node) => node.classList.contains("active")),
   objectiveLabels: await page.locator(".task-actions-pill").evaluateAll((nodes) => nodes.map((node) => node.innerText.trim())),
   objectiveButtonCount: await page.locator(".task-actions-pill button").count()
 };
@@ -158,15 +158,15 @@ checks.tasks.afterCheck = {
 await page.screenshot({ path: "tasks-page-verify.png", fullPage: true });
 
 await page.locator(".calendar-back").click();
-await page.waitForURL("**/travail");
+await page.waitForURL("**/accueil");
 
-await page.locator(".work-card").filter({ hasText: "Calendrier" }).click();
+await page.locator('a[href="/travail/calendrier"]').click();
 await page.waitForURL("**/travail/calendrier");
 checks.calendar = {
   day: await page.locator(".day-pill").textContent(),
   taskCount: await page.locator(".calendar-task").count(),
   freeCount: await page.locator(".free-block").count(),
-  workNavActive: await page.locator('a[href="/travail"]').evaluate((node) => node.classList.contains("active")),
+  calendarNavActive: await page.locator('a[href="/travail/calendrier"]').evaluate((node) => node.classList.contains("active")),
   hasTaskFromTasks: (await page.locator(".calendar-task").evaluateAll((nodes) => nodes.map((node) => node.innerText))).some((text) =>
     text.includes("Test tâche")
   )
@@ -252,8 +252,8 @@ const afterDragTop = await page.locator(".task-swipe-shell").first().evaluate((n
 checks.calendar.dragMoved = beforeDragTop !== afterDragTop;
 
 await page.locator(".calendar-back").click();
-await page.waitForURL("**/travail");
-checks.backToWork = await page.locator("h1").textContent();
+await page.waitForURL("**/accueil");
+checks.backToHome = await page.locator(".home-score-panel strong").textContent();
 
 await page.locator('a[href="/recap"]').click();
 await page.waitForURL("**/recap");

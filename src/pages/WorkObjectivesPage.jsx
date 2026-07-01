@@ -221,7 +221,7 @@ export default function WorkObjectivesPage() {
     >
       <div className={composer ? "objectives-content is-blurred" : "objectives-content"}>
         <header className="objectives-topbar">
-          <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/travail")}>
+          <button className="calendar-back" type="button" aria-label="Retour" onClick={() => navigate("/accueil")}>
             <ArrowLeftIcon width={24} height={24} />
           </button>
           <button className="calendar-add" type="button" aria-label="Creer un objectif" onClick={() => openComposer("objective")}>

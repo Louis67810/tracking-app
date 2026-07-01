@@ -593,10 +593,38 @@ h1 {
   line-height: 1.25;
 }
 
+.home-work-cards {
+  position: absolute;
+  top: 457px;
+  left: 26px;
+  width: calc(100% - 52px);
+  display: grid;
+  gap: 10px;
+}
+
+.home-work-cards::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 356px;
+  height: 58px;
+  left: 15px;
+  top: 40px;
+  border-radius: 200px;
+  background: rgba(129, 214, 245, 0.22);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.home-work-cards .work-card {
+  position: relative;
+  z-index: 1;
+}
+
 .home-heatmap-card {
   position: absolute;
   left: 38px;
-  top: 457px;
+  top: 675px;
   width: 368px;
   height: 307px;
   padding: 21px 17px 14px 19px;
@@ -697,7 +725,7 @@ h1 {
 .home-dashboard-divider {
   position: absolute;
   left: 38px;
-  top: 784px;
+  top: 1002px;
   width: 368px;
   height: 1px;
   background: rgba(255, 255, 255, 0.06);
@@ -706,7 +734,7 @@ h1 {
 .home-nfc-title {
   position: absolute;
   left: 35px;
-  top: 813px;
+  top: 1031px;
   margin: 0;
   color: rgba(255, 255, 255, 0.9);
   font-size: 20px;
@@ -717,7 +745,7 @@ h1 {
 .home-nfc-list {
   position: absolute;
   left: 35px;
-  top: 860px;
+  top: 1078px;
   width: 376px;
   display: grid;
   gap: 16px;

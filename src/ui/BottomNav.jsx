@@ -1,5 +1,5 @@
 import {
-  BriefcaseIcon,
+  CalendarDaysIcon,
   ChartBarIcon,
   FireIcon,
   HomeIcon,
@@ -11,7 +11,7 @@ const items = [
   { to: "/accueil", label: "Accueil", icon: HomeIcon },
   { to: "/focus", label: "Focus", icon: FireIcon },
   { to: "/statistiques", label: "Statistiques", icon: ChartBarIcon },
-  { to: "/travail", label: "Travail", icon: BriefcaseIcon },
+  { to: "/travail/calendrier", label: "Calendrier", icon: CalendarDaysIcon },
   { to: "/recap", label: "Récap", icon: IdentificationIcon }
 ];
 

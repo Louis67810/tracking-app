@@ -1,4 +1,6 @@
 import { ChevronLeftIcon, ChevronRightIcon, TagIcon } from "@heroicons/react/24/solid";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 import ScoreRing from "../ui/ScoreRing.jsx";
 
 const mainScore = 90;
@@ -16,6 +18,11 @@ const nfcCards = [
   { title: "Hydratation", meta: "Suivi eau" }
 ];
 
+const homeLinks = [
+  { label: "Tes tâches", to: "/travail/taches" },
+  { label: "Tes objectifs", to: "/travail/objectifs" }
+];
+
 const heatmapDots = Array.from({ length: 27 * 14 }, (_, index) => {
   const column = index % 27;
   const row = Math.floor(index / 27);
@@ -25,6 +32,8 @@ const heatmapDots = Array.from({ length: 27 * 14 }, (_, index) => {
 });
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
   return (
     <section className="home-page page-surface" aria-label="Accueil">
       <div className="home-hero-art" aria-hidden="true" />
@@ -60,6 +69,20 @@ export default function HomePage() {
             </b>
             <span>{pill.label}</span>
           </div>
+        ))}
+      </div>
+
+      <div className="home-work-cards" aria-label="Sections rapides">
+        {homeLinks.map(({ label, to }) => (
+          <button className="work-card" type="button" key={label} onClick={() => navigate(to)}>
+            <span className="card-label">
+              {label}
+              <span className="arrow-disc" aria-hidden="true">
+                <ArrowRightIcon width={15.5} height={15.5} strokeWidth={2.2} />
+              </span>
+            </span>
+            <span className="card-light" aria-hidden="true" />
+          </button>
         ))}
       </div>
 
