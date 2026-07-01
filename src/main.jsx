@@ -8,6 +8,7 @@ import WorkTasksPage from "./pages/WorkTasksPage.jsx";
 import WorkObjectivesPage from "./pages/WorkObjectivesPage.jsx";
 import FocusPage from "./pages/FocusPage.jsx";
 import RecapPage from "./pages/RecapPage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import EmptyPage from "./pages/EmptyPage.jsx";
 import ScanPage from "./pages/ScanPage.jsx";
 import { registerServiceWorker } from "./pwa.js";
@@ -19,7 +20,7 @@ const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { index: true, element: <Navigate to="/travail" replace /> },
-      { path: "accueil", element: <EmptyPage /> },
+      { path: "accueil", element: <HomePage /> },
       { path: "focus", element: <FocusPage /> },
       { path: "statistiques", element: <EmptyPage /> },
       { path: "travail", element: <WorkPage /> },

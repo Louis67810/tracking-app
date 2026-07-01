@@ -293,6 +293,12 @@ await page.waitForURL("**/accueil");
 checks.afterNav = await page
   .locator(".nav-item")
   .evaluateAll((nodes) => nodes.map((node) => ({ text: node.innerText.trim(), active: node.classList.contains("active") })));
+checks.home = {
+  score: await page.locator(".home-score-panel strong").textContent(),
+  heatmapDots: await page.locator(".home-heatmap-dot").count(),
+  nfcCards: await page.locator(".home-nfc-card").count(),
+  homeNavActive: await page.locator('a[href="/accueil"]').evaluate((node) => node.classList.contains("active"))
+};
 
 await page.screenshot({ path: "empty-page-verify.png", fullPage: true });
 await browser.close();
