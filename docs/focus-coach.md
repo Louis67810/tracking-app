@@ -2,6 +2,8 @@
 
 Branche : `feature/focus-coach`. L’espace est accessible à `/coach` et depuis l’onglet Coach de Tracking. Les routes existantes restent disponibles, y compris `/statistiques` (qui était un écran vide).
 
+Démo hébergée dans un projet Vercel séparé : <https://tracking-focus-coach.vercel.app/coach>. Ce projet contient un instantané de la branche, sans variables Supabase/IA et sans données personnelles. La branche `main` n’a pas été modifiée. Le manifeste de l’espace Coach ouvre `/coach` quand cet espace est installé sur l’écran d’accueil ; revenir à Tracking restaure son manifeste d’origine.
+
 ## Ce qui fonctionne immédiatement
 
 - Interface responsive, contrat du jour, critères de preuve et durées estimées.

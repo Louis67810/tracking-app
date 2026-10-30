@@ -58,8 +58,9 @@ const modes = {
 function Icon({ as: Component, ...props }) {
   return <Component width={20} height={20} aria-hidden="true" {...props} />;
 }
-function niceDate(date) {
+function niceDate(date, timeZone = "Europe/Paris") {
   return new Intl.DateTimeFormat("fr-FR", {
+    timeZone,
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -86,7 +87,23 @@ export default function CoachApp() {
 
   useEffect(() => {
     document.body.classList.add("coach-open");
-    return () => document.body.classList.remove("coach-open");
+    const manifest = document.querySelector('link[rel="manifest"]');
+    const theme = document.querySelector('meta[name="theme-color"]');
+    const previous = {
+      title: document.title,
+      manifest: manifest?.getAttribute("href"),
+      theme: theme?.content,
+    };
+    document.title = "Focus — mon coach de travail";
+    manifest?.setAttribute("href", "/focus.webmanifest");
+    if (theme) theme.content = "#f7f8f5";
+    return () => {
+      document.body.classList.remove("coach-open");
+      document.title = previous.title;
+      if (manifest && previous.manifest)
+        manifest.setAttribute("href", previous.manifest);
+      if (theme) theme.content = previous.theme;
+    };
   }, []);
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 10_000);
@@ -302,7 +319,7 @@ export default function CoachApp() {
             <>
               <div className="fc-page-heading">
                 <div>
-                  <p className="fc-eyebrow">{niceDate(now)}</p>
+                  <p className="fc-eyebrow">{niceDate(now, day?.timeZone)}</p>
                   <h1>
                     Une chose à la fois<span>.</span>
                   </h1>

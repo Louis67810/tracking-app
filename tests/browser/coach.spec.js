@@ -10,6 +10,11 @@ test("desktop: plan, lock, discuss, simulate proofs, persist, preserve original 
   await expect(
     page.getByRole("heading", { name: "Une chose à la fois." }),
   ).toBeVisible();
+  await expect(page).toHaveTitle("Focus — mon coach de travail");
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
+    "href",
+    "/focus.webmanifest",
+  );
   await page.locator("#task-0").fill("Rédiger ma proposition client");
   await page
     .locator("#proof-0")
@@ -73,6 +78,10 @@ test("desktop: plan, lock, discuss, simulate proofs, persist, preserve original 
   await page.getByRole("link", { name: "Retour à Tracking" }).click();
   await expect(page).toHaveURL(/\/accueil$/);
   await expect(page.locator("body")).not.toHaveClass(/coach-open/);
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
+    "href",
+    "/manifest.webmanifest",
+  );
   await expect(page.locator(".home-work-cards")).toBeVisible();
   await page.getByRole("link", { name: "Coach", exact: true }).click();
   await expect(
