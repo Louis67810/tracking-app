@@ -1,6 +1,6 @@
 import {
   CalendarDaysIcon,
-  ChartBarIcon,
+  ChatBubbleLeftRightIcon,
   FireIcon,
   HomeIcon,
   IdentificationIcon
@@ -10,7 +10,7 @@ import { NavLink } from "react-router-dom";
 const items = [
   { to: "/accueil", label: "Accueil", icon: HomeIcon },
   { to: "/focus", label: "Focus", icon: FireIcon },
-  { to: "/statistiques", label: "Statistiques", icon: ChartBarIcon },
+  { to: "/coach", label: "Coach", icon: ChatBubbleLeftRightIcon },
   { to: "/travail/calendrier", label: "Calendrier", icon: CalendarDaysIcon },
   { to: "/recap", label: "Récap", icon: IdentificationIcon }
 ];
