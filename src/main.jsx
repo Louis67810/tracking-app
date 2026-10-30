@@ -1,6 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom";
+import {
+  Navigate,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router-dom";
 import AppShell from "./ui/AppShell.jsx";
 import WorkPage from "./pages/WorkPage.jsx";
 import WorkCalendarPage from "./pages/WorkCalendarPage.jsx";
@@ -13,8 +17,19 @@ import EmptyPage from "./pages/EmptyPage.jsx";
 import ScanPage from "./pages/ScanPage.jsx";
 import { registerServiceWorker } from "./pwa.js";
 import "./styles.css";
+const CoachApp = React.lazy(() => import("./coach/CoachApp.jsx"));
 
 const router = createBrowserRouter([
+  {
+    path: "/coach",
+    element: (
+      <React.Suspense
+        fallback={<p style={{ padding: 30 }}>Ouverture du coach…</p>}
+      >
+        <CoachApp />
+      </React.Suspense>
+    ),
+  },
   {
     path: "/",
     element: <AppShell />,
@@ -28,15 +43,15 @@ const router = createBrowserRouter([
       { path: "travail/taches", element: <WorkTasksPage /> },
       { path: "travail/objectifs", element: <WorkObjectivesPage /> },
       { path: "recap", element: <RecapPage /> },
-      { path: "scan", element: <ScanPage /> }
-    ]
-  }
+      { path: "scan", element: <ScanPage /> },
+    ],
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 registerServiceWorker();
